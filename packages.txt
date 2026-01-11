@@ -1,0 +1,5 @@
+# System packages required for osmium and geospatial libraries
+libosmium2-dev
+libgeos-dev
+libproj-dev
+libboost-dev
