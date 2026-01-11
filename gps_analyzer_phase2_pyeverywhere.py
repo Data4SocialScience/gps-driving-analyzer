@@ -89,12 +89,14 @@ class UnifiedOfflineMapDataManager:
             #raise ValueError(f"PBF file not found at {self.pbf_file_path}. Download from Geofabrik or similar.")
 
         # Use relative path for cloud deployment - cache should be in same directory as script
+        # Use relative path for cloud deployment - cache should be in same directory as script
         self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "map_cache") if cache_dir == "map_cache" else cache_dir
-        #if not os.path.exists(self.cache_dir):
-            #os.makedirs(self.cache_dir)
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
                     
-        # NEW: Master cache file path
-        self.master_cache_file = os.path.join(cache_dir, "alsace_master_cache.pkl")
+        # NEW: Master cache file path - use self.cache_dir not cache_dir
+        self.master_cache_file = os.path.join(self.cache_dir, "alsace_master_cache.pkl")
+                     
         self.master_data = None  # Will hold complete Alsace data
             
         self.map_data = {
