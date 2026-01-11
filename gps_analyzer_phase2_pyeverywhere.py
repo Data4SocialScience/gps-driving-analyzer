@@ -65,7 +65,7 @@ New reconstruct_route_geom
 Changed Graph Building (reverted to old logic to build roundabouts correctly)
 Key Fixes Applied:
 
-Grid reduced to 1m (0.00001Â°) - industry standard
+Grid reduced to 1m (0.00001°) - industry standard
 Self-loop elimination - deduplicate canonical sequence before edge creation
 Bidirectional edges - add reverse edges (key=1) for non-oneway roads
 Name preservation in bridging - reject paths that change road name
@@ -88,15 +88,12 @@ class UnifiedOfflineMapDataManager:
         #if not os.path.exists(self.pbf_file_path):
             #raise ValueError(f"PBF file not found at {self.pbf_file_path}. Download from Geofabrik or similar.")
 
-        # Use relative path for cloud deployment - cache should be in same directory as script
-        # Use relative path for cloud deployment - cache should be in same directory as script
-        self.cache_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "map_cache") if cache_dir == "map_cache" else cache_dir
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
+        self.cache_dir = r"C:\Users\DELL\OneDrive\Upwork\Working_Directory\Claude\map_cache"
+        #if not os.path.exists(self.cache_dir):
+            #os.makedirs(self.cache_dir)
                     
-        # NEW: Master cache file path - use self.cache_dir not cache_dir
-        self.master_cache_file = os.path.join(self.cache_dir, "alsace_master_cache.pkl")
-                     
+        # NEW: Master cache file path
+        self.master_cache_file = os.path.join(cache_dir, "alsace_master_cache.pkl")
         self.master_data = None  # Will hold complete Alsace data
             
         self.map_data = {
@@ -1070,7 +1067,7 @@ class ParallelSpeedLimitCalculator:
         total_coords = len(speed_limits_data)
         
         if total_coords == 0:
-            print("  âš ï¸ No speed limits in coordinate cache, will use graph edges only")
+            print("  ⚠️ No speed limits in coordinate cache, will use graph edges only")
             return
         
         coords_for_index = []
@@ -1440,7 +1437,7 @@ class UnifiedGPSDataProcessor:
         """Load and process single CSV/Excel with road matching (original method)"""
         
         try:
-            print(f"ðŸ“‚ Loading {filepath}...")
+            print(f"📂 Loading {filepath}...")
 
             
             # Check if file is Excel or CSV
@@ -1456,7 +1453,7 @@ class UnifiedGPSDataProcessor:
                         data_sheet = sheet
                         break
                 
-                print(f"   ðŸ“„ Using Excel sheet: {data_sheet}")
+                print(f"   📄 Using Excel sheet: {data_sheet}")
                 df = pd.read_excel(filepath, sheet_name=data_sheet)
                 
             else:
@@ -1483,11 +1480,11 @@ class UnifiedGPSDataProcessor:
             
             self.processed_df = processed_df
             self.df = processed_df  # Maintain compatibility
-            print(f"âœ… Processed {len(processed_df)} GPS points with road context")
+            print(f"✅ Processed {len(processed_df)} GPS points with road context")
             return True
             
         except Exception as e:
-            print(f"âŒ Error processing file: {e}")
+            print(f"❌ Error processing file: {e}")
             return False
 
 
@@ -1536,10 +1533,10 @@ class UnifiedGPSDataProcessor:
         lon_range = max(all_lons) - min(all_lons)
         
         # France-specific conversion (more accurate than generic formula)
-        # At France's latitude (~46Â°N), 1Â° lat â‰ˆ 111 km, 1Â° lon â‰ˆ 78 km
+        # At France's latitude (~46°N), 1° lat ≈ 111 km, 1° lon ≈ 78 km
         area_km2 = lat_range * 111 * lon_range * 78
         
-        print(f"Combined area: {area_km2:.1f} kmÂ² (threshold: {max_area_km2} kmÂ²)")
+        print(f"Combined area: {area_km2:.1f} km² (threshold: {max_area_km2} km²)")
         return area_km2 <= max_area_km2
 
     def get_driven_road_ids(self):
@@ -1582,14 +1579,14 @@ class UnifiedGPSDataProcessor:
             csv_files = csv_files_or_pattern
     
         if not csv_files:
-            print("âŒ No files found!")
+            print("❌ No files found!")
             return False
     
-        print(f"ðŸ“ Loading {len(csv_files)} files for multi-week analysis...")
+        print(f"📁 Loading {len(csv_files)} files for multi-week analysis...")
     
         all_dataframes = []
         for i, csv_file in enumerate(csv_files, 1):
-            print(f"  ðŸ“‚ Processing Week {i}: {os.path.basename(csv_file)}")
+            print(f"  📂 Processing Week {i}: {os.path.basename(csv_file)}")
     
             try:
                 # Check if file is Excel or CSV
@@ -1606,7 +1603,7 @@ class UnifiedGPSDataProcessor:
                             break
                     
                     df = pd.read_excel(csv_file, sheet_name=data_sheet)
-                    print(f"    ðŸ“„ Using Excel sheet: {data_sheet}")
+                    print(f"    📄 Using Excel sheet: {data_sheet}")
                     
                 else:
                     # CSV file processing (original logic)
@@ -1630,13 +1627,13 @@ class UnifiedGPSDataProcessor:
     
                 file_type = "Excel" if csv_file.lower().endswith(('.xlsx', '.xls')) else "CSV"
                 encoding_info = "" if file_type == "Excel" else f", encoding: {encoding}"
-                print(f"    âœ… Week {i}: {len(processed_df)} GPS points ({file_type}{encoding_info})")
+                print(f"    ✅ Week {i}: {len(processed_df)} GPS points ({file_type}{encoding_info})")
     
             except Exception as e:
-                print(f"    âŒ Failed to process: {csv_file} - {e}")
+                print(f"    ❌ Failed to process: {csv_file} - {e}")
     
         if not all_dataframes:
-            print("âŒ No valid data found in any files!")
+            print("❌ No valid data found in any files!")
             return False
     
         self.combined_data = pd.concat(all_dataframes, ignore_index=True)
@@ -1645,7 +1642,7 @@ class UnifiedGPSDataProcessor:
         # NEW: Assess GPS quality on combined data
         self._assess_gps_quality(self.combined_data)
     
-        print(f"âœ… Combined data: {len(self.combined_data)} total GPS points across {len(csv_files)} files")
+        print(f"✅ Combined data: {len(self.combined_data)} total GPS points across {len(csv_files)} files")
         return True
     
     
@@ -1690,7 +1687,7 @@ class UnifiedGPSDataProcessor:
             'lng': 'lon',
             'Date Heure': 'timestamp',
             'dt_tracker': 'timestamp',
-            'La rapiditÃ©': 'speed',
+            'La rapidité': 'speed',
             'speed': 'speed',
             'angle': 'heading',
             'altitude': 'altitude'
@@ -1788,7 +1785,7 @@ class UnifiedGPSDataProcessor:
         df['io_trip_odometer'] = None  # io800: trip odometer (meters)
         
         if not has_params:
-            print("   â„¹ï¸  No 'params' column found - using basic GPS data only")
+            print("   ℹ️  No 'params' column found - using basic GPS data only")
             df['has_io_params'] = False
             return df
         
@@ -1818,7 +1815,7 @@ class UnifiedGPSDataProcessor:
         
         # Count successful parses
         params_count = df['has_io_params'].sum()
-        print(f"   âœ… Parsed IO parameters for {params_count}/{len(df)} points")
+        print(f"   ✅ Parsed IO parameters for {params_count}/{len(df)} points")
         
         return df
     
@@ -1950,12 +1947,12 @@ class UnifiedGPSDataProcessor:
         self.gps_quality = quality
         
         # Print summary
-        print(f"\nðŸ“Š GPS Quality Assessment:")
+        print(f"\n📊 GPS Quality Assessment:")
         print(f"   Average interval: {quality['avg_interval_seconds']:.1f}s {'(SPARSE)' if quality['is_sparse'] else '(OK)'}")
         print(f"   Detection mode: {quality['detection_mode'].upper()}")
-        print(f"   IO params available: {'âœ…' if quality['has_io_params'] else 'âŒ'}")
-        print(f"   Movement status (io240): {'âœ…' if quality['has_movement_status'] else 'âŒ'}")
-        print(f"   Engine data (io1440): {'âœ…' if quality['has_engine_data'] else 'âŒ'}")
+        print(f"   IO params available: {'✅' if quality['has_io_params'] else '❌'}")
+        print(f"   Movement status (io240): {'✅' if quality['has_movement_status'] else '❌'}")
+        print(f"   Engine data (io1440): {'✅' if quality['has_engine_data'] else '❌'}")
        
         return quality
         
@@ -1964,20 +1961,20 @@ class UnifiedGPSDataProcessor:
     def debug_bbox_calculation(self):
         """Debug where the bounding box comes from"""
         
-        print("ðŸ” DEBUGGING BOUNDING BOX CALCULATION")
+        print("🔍 DEBUGGING BOUNDING BOX CALCULATION")
         print("="*60)
         
         # 1. Check combined_data
-        print("\n1ï¸âƒ£ COMBINED DATA:")
+        print("\n1️⃣ COMBINED DATA:")
         if self.combined_data is not None:
             print(f"   Rows: {len(self.combined_data)}")
             print(f"   Lat range: [{self.combined_data['lat'].min():.4f}, {self.combined_data['lat'].max():.4f}]")
             print(f"   Lon range: [{self.combined_data['lon'].min():.4f}, {self.combined_data['lon'].max():.4f}]")
         else:
-            print("   âŒ combined_data is None!")
+            print("   ❌ combined_data is None!")
         
         # 2. Check weekly_data totals
-        print("\n2ï¸âƒ£ WEEKLY DATA:")
+        print("\n2️⃣ WEEKLY DATA:")
         all_lats = []
         all_lons = []
         for week, df in self.weekly_data.items():
@@ -1997,20 +1994,20 @@ class UnifiedGPSDataProcessor:
             max(all_lats) + buffer,
             max(all_lons) + buffer
         )
-        print(f"\n3ï¸âƒ£ CORRECT BBOX SHOULD BE:")
+        print(f"\n3️⃣ CORRECT BBOX SHOULD BE:")
         print(f"   ({correct_bbox[0]:.4f}, {correct_bbox[1]:.4f}, {correct_bbox[2]:.4f}, {correct_bbox[3]:.4f})")
         
         # 4. Check what get_weekly_bounding_boxes returns
-        print("\n4ï¸âƒ£ get_weekly_bounding_boxes() RETURNS:")
+        print("\n4️⃣ get_weekly_bounding_boxes() RETURNS:")
         bbox = self.get_weekly_bounding_boxes()
         if bbox:
             print(f"   ({bbox[0]:.4f}, {bbox[1]:.4f}, {bbox[2]:.4f}, {bbox[3]:.4f})")
             
             # Compare
             if abs(bbox[0] - correct_bbox[0]) > 0.001:
-                print(f"   âš ï¸ Min lat mismatch! Got {bbox[0]:.4f}, expected {correct_bbox[0]:.4f}")
+                print(f"   ⚠️ Min lat mismatch! Got {bbox[0]:.4f}, expected {correct_bbox[0]:.4f}")
         else:
-            print("   âŒ Returns None!")
+            print("   ❌ Returns None!")
     
 
 
@@ -2025,7 +2022,7 @@ class UnifiedGPSDataProcessor:
         
         G = nx.MultiDiGraph()
         
-        print(f"  ðŸ”§ Processing {len(self.map_manager.map_data['roads'])} roads...")
+        print(f"  🔧 Processing {len(self.map_manager.map_data['roads'])} roads...")
     
         # Get expanded bounding box
         bbox = corridor_polygon.bounds
@@ -2053,9 +2050,9 @@ class UnifiedGPSDataProcessor:
                 road_maxy >= expanded_bbox[1] and road_miny <= expanded_bbox[3]):
                 relevant_roads.append(road)
     
-        print(f"  âœ… {len(relevant_roads)} roads in expanded bounding box")
+        print(f"  ✅ {len(relevant_roads)} roads in expanded bounding box")
         
-        # FIXED: Use 1m grid precision (0.00001 degrees â‰ˆ 1.1m)
+        # FIXED: Use 1m grid precision (0.00001 degrees ≈ 1.1m)
         GRID_SIZE = 0.00001
         
         def get_grid_key(lat, lon):
@@ -2095,8 +2092,8 @@ class UnifiedGPSDataProcessor:
             for node_id, _, _ in nodes:
                 original_to_canonical[node_id] = canonical_id
         
-        print(f"  ðŸ”— Merged {merged_count} duplicate nodes at intersections")
-        print(f"  ðŸ“ Total unique nodes: {len(grid_to_canonical)}")
+        print(f"  🔗 Merged {merged_count} duplicate nodes at intersections")
+        print(f"  📍 Total unique nodes: {len(grid_to_canonical)}")
         
         # Add nodes to graph
         nodes_added = set()
@@ -2172,7 +2169,7 @@ class UnifiedGPSDataProcessor:
         G.graph['crs'] = 'EPSG:4326'
         self.road_graph = G
         
-        print(f"  ðŸ“Š Graph built: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
+        print(f"  📊 Graph built: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
         
         # NEW: Count junction types
         junction_counts = {}
@@ -2181,16 +2178,16 @@ class UnifiedGPSDataProcessor:
             if junc:
                 junction_counts[junc] = junction_counts.get(junc, 0) + 1
         if junction_counts:
-            print(f"  ðŸ”„ Junction types: {junction_counts}")
+            print(f"  🔄 Junction types: {junction_counts}")
         
         # Verify connectivity
         num_components = nx.number_weakly_connected_components(G)
         if num_components > 1:
             components = list(nx.weakly_connected_components(G))
             sizes = sorted([len(c) for c in components], reverse=True)
-            print(f"  âš ï¸  Graph has {num_components} components. Sizes: {sizes[:5]}")
+            print(f"  ⚠️  Graph has {num_components} components. Sizes: {sizes[:5]}")
         else:
-            print(f"  âœ… Graph is fully connected!")
+            print(f"  ✅ Graph is fully connected!")
         
         # Cache the graph
         cache_file = os.path.join(self.cache_dir, f"road_graph_{area_hash}.pkl")
@@ -2198,7 +2195,7 @@ class UnifiedGPSDataProcessor:
         try:
             with open(cache_file, 'wb') as f:
                 pickle.dump({'graph': G}, f)
-            print(f"  ðŸ’¾ Cached graph to {cache_file}")
+            print(f"  💾 Cached graph to {cache_file}")
         except Exception:
             pass
         
@@ -2214,7 +2211,7 @@ class UnifiedGPSDataProcessor:
         u1, v1, k1 = gap_edge1
         u2, v2, k2 = gap_edge2
         
-        print(f"\nðŸ” GAP DIAGNOSTIC:")
+        print(f"\n🔍 GAP DIAGNOSTIC:")
         print(f"   Edge 1: {gap_edge1}")
         print(f"   Edge 2: {gap_edge2}")
         
@@ -2231,8 +2228,8 @@ class UnifiedGPSDataProcessor:
             nodes_e2 = {u2, v2}
             shared = nodes_e1.intersection(nodes_e2)
             
-            print(f"   Edge 1 nodes: {u1} â†’ {v1}")
-            print(f"   Edge 2 nodes: {u2} â†’ {v2}")
+            print(f"   Edge 1 nodes: {u1} → {v1}")
+            print(f"   Edge 2 nodes: {u2} → {v2}")
             print(f"   Shared nodes: {shared}")
             
             # Get node coordinates
@@ -2245,7 +2242,7 @@ class UnifiedGPSDataProcessor:
             print(f"   Distance between v1 and u2: {node_dist:.1f}m")
             
             if node_dist < 10:
-                print(f"   âš ï¸  Nodes are very close but NOT connected! This is the bug.")
+                print(f"   ⚠️  Nodes are very close but NOT connected! This is the bug.")
             
         except Exception as e:
             print(f"   Error: {e}")
@@ -2255,7 +2252,7 @@ class UnifiedGPSDataProcessor:
         """Deep diagnostic of graph connectivity issues"""
         import networkx as nx
         
-        print("\nðŸ” GRAPH CONNECTIVITY DIAGNOSTIC:")
+        print("\n🔍 GRAPH CONNECTIVITY DIAGNOSTIC:")
         print(f"   Total nodes: {self.road_graph.number_of_nodes()}")
         print(f"   Total edges: {self.road_graph.number_of_edges()}")
         
@@ -2267,7 +2264,7 @@ class UnifiedGPSDataProcessor:
             components = list(nx.weakly_connected_components(self.road_graph))
             sizes = sorted([len(c) for c in components], reverse=True)
             print(f"   Component sizes (top 5): {sizes[:5]}")
-            print(f"   âš ï¸  Graph is fragmented into {num_components} pieces!")
+            print(f"   ⚠️  Graph is fragmented into {num_components} pieces!")
         
         # Sample some edges to check node sharing
         print("\n   Checking node sharing at intersections...")
@@ -2323,11 +2320,11 @@ class UnifiedGPSDataProcessor:
         from geopy.distance import geodesic
         from shapely.geometry import Point
         
-        print(f"\nðŸ” DEEP CHECK AT ({lat}, {lon})")
+        print(f"\n🔍 DEEP CHECK AT ({lat}, {lon})")
         print("="*60)
         
         # 1. Find nearest node in graph
-        print("\n1ï¸âƒ£ NEAREST NODES IN ROAD GRAPH:")
+        print("\n1️⃣ NEAREST NODES IN ROAD GRAPH:")
         node_distances = []
         for node, data in self.road_graph.nodes(data=True):
             if 'y' in data and 'x' in data:
@@ -2340,10 +2337,10 @@ class UnifiedGPSDataProcessor:
             print(f"   Node {node}: ({n_lat:.6f}, {n_lon:.6f}) - {dist:.0f}m away")
         
         nearest_dist = node_distances[0][3] if node_distances else float('inf')
-        print(f"\n   âž¡ï¸ Nearest node is {nearest_dist:.0f}m away")
+        print(f"\n   ➡️ Nearest node is {nearest_dist:.0f}m away")
         
         # 2. Find nearest edge in graph
-        print("\n2ï¸âƒ£ NEAREST EDGES IN ROAD GRAPH:")
+        print("\n2️⃣ NEAREST EDGES IN ROAD GRAPH:")
         gps_point = Point(lon, lat)
         edge_distances = []
         
@@ -2367,10 +2364,10 @@ class UnifiedGPSDataProcessor:
             print(f"   '{e['name']}' (OSM:{e['osmid']}): {e['distance']:.0f}m away")
         
         nearest_edge_dist = edge_distances[0]['distance'] if edge_distances else float('inf')
-        print(f"\n   âž¡ï¸ Nearest edge is {nearest_edge_dist:.0f}m away")
+        print(f"\n   ➡️ Nearest edge is {nearest_edge_dist:.0f}m away")
         
         # 3. Check map_data for roads near this point
-        print("\n3ï¸âƒ£ ROADS IN MAP_DATA NEAR THIS POINT:")
+        print("\n3️⃣ ROADS IN MAP_DATA NEAR THIS POINT:")
         roads_found = []
         
         for road in self.map_manager.map_data.get('roads', []):
@@ -2393,35 +2390,35 @@ class UnifiedGPSDataProcessor:
             for r in roads_found[:10]:
                 print(f"   '{r['name']}' (OSM:{r['osmid']}, {r['highway']}): {r['distance']:.0f}m")
         else:
-            print("   âŒ NO roads within 100m in map_data either!")
+            print("   ❌ NO roads within 100m in map_data either!")
         
         # 4. Diagnosis
-        print("\n4ï¸âƒ£ DIAGNOSIS:")
+        print("\n4️⃣ DIAGNOSIS:")
         if nearest_edge_dist > 100 and roads_found:
-            print(f"   âš ï¸ Roads exist in map_data but NOT in road_graph!")
+            print(f"   ⚠️ Roads exist in map_data but NOT in road_graph!")
             print(f"   The _build_optimized_graph() function filtered them out.")
             print(f"   Check the corridor_polygon or bbox used during graph building.")
         elif nearest_edge_dist > 100 and not roads_found:
-            print(f"   âŒ No roads in map_data either - this area has no OSM road data")
+            print(f"   ❌ No roads in map_data either - this area has no OSM road data")
             print(f"   Or the bbox filter excluded this area during master cache filtering.")
         else:
-            print(f"   âœ… Roads exist - issue might be in candidate search logic.")
+            print(f"   ✅ Roads exist - issue might be in candidate search logic.")
     
     
         
     def trace_data_flow(self):
         """Trace where different data comes from"""
         
-        print("ðŸ” TRACING DATA FLOW")
+        print("🔍 TRACING DATA FLOW")
         print("="*60)
         
         # 1. GPS Data bounds
-        print("\n1ï¸âƒ£ GPS DATA BOUNDS:")
+        print("\n1️⃣ GPS DATA BOUNDS:")
         for week, df in self.weekly_data.items():
             print(f"   {week}: lat [{df['lat'].min():.4f}, {df['lat'].max():.4f}], lon [{df['lon'].min():.4f}, {df['lon'].max():.4f}]")
         
         # 2. Map data bounds (from map_manager)
-        print("\n2ï¸âƒ£ MAP DATA (from map_manager.map_data):")
+        print("\n2️⃣ MAP DATA (from map_manager.map_data):")
         if hasattr(self, 'map_manager') and self.map_manager:
             roads = self.map_manager.map_data.get('roads', [])
             if roads:
@@ -2441,7 +2438,7 @@ class UnifiedGPSDataProcessor:
             print("   No map_manager reference")
         
         # 3. Road graph bounds
-        print("\n3ï¸âƒ£ ROAD GRAPH BOUNDS:")
+        print("\n3️⃣ ROAD GRAPH BOUNDS:")
         if self.road_graph:
             lats = [data['y'] for _, data in self.road_graph.nodes(data=True) if 'y' in data]
             lons = [data['x'] for _, data in self.road_graph.nodes(data=True) if 'x' in data]
@@ -2452,7 +2449,7 @@ class UnifiedGPSDataProcessor:
             print("   No road_graph")
         
         # 4. Check for mismatch
-        print("\n4ï¸âƒ£ MISMATCH ANALYSIS:")
+        print("\n4️⃣ MISMATCH ANALYSIS:")
         if self.weekly_data and self.road_graph:
             gps_min_lat = min(df['lat'].min() for df in self.weekly_data.values())
             gps_max_lat = max(df['lat'].max() for df in self.weekly_data.values())
@@ -2463,10 +2460,10 @@ class UnifiedGPSDataProcessor:
             
             if gps_min_lat < graph_min_lat:
                 gap = (graph_min_lat - gps_min_lat) * 111  # km
-                print(f"   âš ï¸ GPS goes {gap:.1f} km SOUTH of road graph!")
+                print(f"   ⚠️ GPS goes {gap:.1f} km SOUTH of road graph!")
             if gps_max_lat > graph_max_lat:
                 gap = (gps_max_lat - graph_max_lat) * 111  # km
-                print(f"   âš ï¸ GPS goes {gap:.1f} km NORTH of road graph!")
+                print(f"   ⚠️ GPS goes {gap:.1f} km NORTH of road graph!")
         
         
     # Add this after _build_optimized_graph() completes
@@ -2487,14 +2484,14 @@ class UnifiedGPSDataProcessor:
         total_edges = self.road_graph.number_of_edges()
         largest_cc_size = len(largest_cc)
         
-        print(f"\nðŸ” GRAPH CONNECTIVITY DEBUG:")
+        print(f"\n🔍 GRAPH CONNECTIVITY DEBUG:")
         print(f"   Total nodes: {total_nodes}")
         print(f"   Total edges: {total_edges}")
         print(f"   Connected components: {num_components}")
         print(f"   Largest component: {largest_cc_size} nodes ({100*largest_cc_size/total_nodes:.1f}%)")
         
         if num_components > 1:
-            print(f"   âš ï¸  WARNING: Graph has {num_components} disconnected components!")
+            print(f"   ⚠️  WARNING: Graph has {num_components} disconnected components!")
             print(f"   This explains why gaps are being detected.")
     
     def _perform_map_matching(self, df, build_graph_only=False, rebuild_graph=True):
@@ -2519,31 +2516,31 @@ class UnifiedGPSDataProcessor:
     
             # NEW: Only rebuild graph if requested
             if rebuild_graph or self.road_graph is None:
-                print("  ðŸ“¥ Building optimized road network from PBF data...")
+                print("  📥 Building optimized road network from PBF data...")
                 if not self._load_cached_graph(area_hash):
                     self.road_graph = self._build_optimized_graph(corridor_ll, area_hash)
             else:
-                print(f"  ðŸ“ Reusing existing road graph ({self.road_graph.number_of_nodes()} nodes, {self.road_graph.number_of_edges()} edges)")
+                print(f"  📍 Reusing existing road graph ({self.road_graph.number_of_nodes()} nodes, {self.road_graph.number_of_edges()} edges)")
     
             # NEW: If only building graph, stop here
             if build_graph_only:
-                print(f"  âœ… Graph building complete (build_graph_only=True)")
+                print(f"  ✅ Graph building complete (build_graph_only=True)")
                 return
     
             # Build spatial index for fast candidate queries (do this every time)
             self._build_edge_spatial_index()
     
             # 3) HMM-based map matching
-            print("  ðŸŽ¯ Performing HMM-based map matching with Viterbi algorithm...")
+            print("  🎯 Performing HMM-based map matching with Viterbi algorithm...")
             X = df['lon'].to_numpy()
             Y = df['lat'].to_numpy()
     
             # Step 3a: Find candidate edges for each GPS point
-            print("  ðŸ” Finding candidate edges for each GPS point...")
+            print("  🔍 Finding candidate edges for each GPS point...")
             candidates_per_point = self._find_candidates_hmm(X, Y, max_candidates=10, search_radius=100)
     
             # Step 3b: Run Viterbi algorithm to find optimal path
-            print("  ðŸ§® Running Viterbi algorithm to find optimal road sequence...")
+            print("  🧮 Running Viterbi algorithm to find optimal road sequence...")
             matched_edges = self._viterbi_map_matching(X, Y, candidates_per_point, df)
 
             # Post-process to fix reverse edge zig-zags
@@ -2554,7 +2551,7 @@ class UnifiedGPSDataProcessor:
 
     
             # 4) Reconstruct route geometry following actual road network
-            print("  ðŸ›£ï¸  Reconstructing route geometry from road network...")
+            print("  🛣️  Reconstructing route geometry from road network...")
             route_points = self._reconstruct_route_geometry(X, Y, matched_edges)
     
             # Add matched edges to driven edges set
@@ -2590,7 +2587,7 @@ class UnifiedGPSDataProcessor:
                     valid_points.append((lon, lat))
     
             if len(valid_points) <= 1:
-                print("  âš ï¸  No valid route points found, using original GPS coordinates")
+                print("  ⚠️  No valid route points found, using original GPS coordinates")
                 fallback_points = []
                 for i in range(len(df)):
                     if pd.notna(df.iloc[i]['lat']) and pd.notna(df.iloc[i]['lon']):
@@ -2598,12 +2595,12 @@ class UnifiedGPSDataProcessor:
     
                 if len(fallback_points) > 1:
                     self.route_geometry = LineString(fallback_points)
-                    print(f"  âœ… Created fallback route geometry with {len(fallback_points)} GPS points")
+                    print(f"  ✅ Created fallback route geometry with {len(fallback_points)} GPS points")
     
             if len(valid_points) > 1:
                 try:
                     self.route_geometry = LineString(valid_points)
-                    print(f"  âœ… Created route geometry with {len(valid_points)} points")
+                    print(f"  ✅ Created route geometry with {len(valid_points)} points")
                     self.route_geometry = self.route_geometry.simplify(0.000001, preserve_topology=True)
     
                     # Update road context
@@ -2613,14 +2610,14 @@ class UnifiedGPSDataProcessor:
                         driven_road_ids.discard(None)
                         if driven_road_ids:
                             self.map_manager.set_road_context(driven_road_ids, self.route_geometry)
-                            print(f"  âœ… Identified {len(driven_road_ids)} unique road segments")
+                            print(f"  ✅ Identified {len(driven_road_ids)} unique road segments")
     
                 except Exception as e:
-                    print(f"  âš ï¸  Could not create route geometry: {type(e).__name__}: {str(e)}")
+                    print(f"  ⚠️  Could not create route geometry: {type(e).__name__}: {str(e)}")
                     self.route_geometry = None
     
         except Exception as e:
-            print(f"  âš ï¸  Map matching failed: {e}. Using GPS coordinates.")
+            print(f"  ⚠️  Map matching failed: {e}. Using GPS coordinates.")
             import traceback
             traceback.print_exc()
             df['matched_edge'] = [None] * len(df)
@@ -2632,7 +2629,7 @@ class UnifiedGPSDataProcessor:
         # After map matching, add this debug
     def debug_edge_continuity(self, df, sample_size=20):
         """Check if consecutive matched edges share nodes"""
-        print("\nðŸ” EDGE CONTINUITY DEBUG:")
+        print("\n🔍 EDGE CONTINUITY DEBUG:")
         
         gaps_found = 0
         for i in range(1, min(sample_size, len(df))):
@@ -2652,9 +2649,9 @@ class UnifiedGPSDataProcessor:
                     prev_name = self.road_graph.edges[prev_edge].get('name', 'unnamed')
                     curr_name = self.road_graph.edges[curr_edge].get('name', 'unnamed')
                     
-                    print(f"   Point {i}: GAP - '{prev_name}' â†’ '{curr_name}'")
-                    print(f"      Prev edge nodes: {u1} â†’ {v1}")
-                    print(f"      Curr edge nodes: {u2} â†’ {v2}")
+                    print(f"   Point {i}: GAP - '{prev_name}' → '{curr_name}'")
+                    print(f"      Prev edge nodes: {u1} → {v1}")
+                    print(f"      Curr edge nodes: {u2} → {v2}")
         
         print(f"\n   Total gaps in first {sample_size} points: {gaps_found}")
 
@@ -2754,19 +2751,19 @@ class UnifiedGPSDataProcessor:
                 candidates_per_point.append(candidates)
     
             except Exception as e:
-                print(f"    âš ï¸  Error finding candidates at point {i}: {e}")
+                print(f"    ⚠️  Error finding candidates at point {i}: {e}")
                 candidates_per_point.append([])
                 prev_best_candidates = None
     
         if show_progress:
-            print(f"    âœ… Processed {n_points} GPS points")
+            print(f"    ✅ Processed {n_points} GPS points")
     
         return candidates_per_point
 
     def debug_graph_building_bbox(self):
         """Debug what bbox is used for graph building"""
         
-        print("ðŸ” DEBUGGING GRAPH BUILDING BBOX")
+        print("🔍 DEBUGGING GRAPH BUILDING BBOX")
         print("="*60)
         
         # Check the problematic point
@@ -2777,7 +2774,7 @@ class UnifiedGPSDataProcessor:
         lons = [data['x'] for _, data in self.road_graph.nodes(data=True) if 'x' in data]
         
         graph_bbox = (min(lons), min(lats), max(lons), max(lats))
-        print(f"\n1ï¸âƒ£ Current Road Graph BBox:")
+        print(f"\n1️⃣ Current Road Graph BBox:")
         print(f"   Min: ({graph_bbox[1]:.6f}, {graph_bbox[0]:.6f})")
         print(f"   Max: ({graph_bbox[3]:.6f}, {graph_bbox[2]:.6f})")
         
@@ -2787,7 +2784,7 @@ class UnifiedGPSDataProcessor:
         print(f"\n   Test point ({test_lat}, {test_lon}) in bbox: {in_bbox}")
         
         # 3. Get GPS data bbox for each week
-        print(f"\n2ï¸âƒ£ GPS Data BBox per Week:")
+        print(f"\n2️⃣ GPS Data BBox per Week:")
         for week, df in self.weekly_data.items():
             week_bbox = (
                 df['lon'].min(), df['lat'].min(),
@@ -2800,10 +2797,10 @@ class UnifiedGPSDataProcessor:
             print(f"   {week}:")
             print(f"      Lat: [{week_bbox[1]:.6f}, {week_bbox[3]:.6f}]")
             print(f"      Lon: [{week_bbox[0]:.6f}, {week_bbox[2]:.6f}]")
-            print(f"      Contains test point: {'âœ… YES' if test_in_week else 'âŒ NO'}")
+            print(f"      Contains test point: {'✅ YES' if test_in_week else '❌ NO'}")
         
         # 4. Calculate what bbox SHOULD be used
-        print(f"\n3ï¸âƒ£ Combined GPS Data BBox (what should be used):")
+        print(f"\n3️⃣ Combined GPS Data BBox (what should be used):")
         all_lats = []
         all_lons = []
         for df in self.weekly_data.values():
@@ -2816,36 +2813,36 @@ class UnifiedGPSDataProcessor:
         
         test_in_combined = (combined_bbox[0] <= test_lon <= combined_bbox[2] and 
                             combined_bbox[1] <= test_lat <= combined_bbox[3])
-        print(f"   Contains test point: {'âœ… YES' if test_in_combined else 'âŒ NO'}")
+        print(f"   Contains test point: {'✅ YES' if test_in_combined else '❌ NO'}")
 
 
     def verify_graph_coverage_at_points(self, coordinates):
         """Check if road graph has ANY roads near these GPS points"""
         
-        print("ðŸ” VERIFYING ROAD GRAPH COVERAGE AT SPECIFIC POINTS")
+        print("🔍 VERIFYING ROAD GRAPH COVERAGE AT SPECIFIC POINTS")
         print("="*60)
         
         # 1. Check road graph bounds
         lats = [data['y'] for _, data in self.road_graph.nodes(data=True) if 'y' in data]
         lons = [data['x'] for _, data in self.road_graph.nodes(data=True) if 'x' in data]
         
-        print(f"\nðŸ“Š Road Graph Stats:")
+        print(f"\n📊 Road Graph Stats:")
         print(f"   Nodes: {len(lats)}")
         print(f"   Lat range: [{min(lats):.6f}, {max(lats):.6f}]")
         print(f"   Lon range: [{min(lons):.6f}, {max(lons):.6f}]")
         
         # 2. Check if GPS points are within bounds
-        print(f"\nðŸ“ GPS Points vs Graph Bounds:")
+        print(f"\n📍 GPS Points vs Graph Bounds:")
         for i, (lat, lon) in enumerate(coordinates[:5]):
             lat_in = min(lats) <= lat <= max(lats)
             lon_in = min(lons) <= lon <= max(lons)
-            status = "âœ… IN BOUNDS" if (lat_in and lon_in) else "âŒ OUT OF BOUNDS"
+            status = "✅ IN BOUNDS" if (lat_in and lon_in) else "❌ OUT OF BOUNDS"
             print(f"   Point {i} ({lat:.6f}, {lon:.6f}): {status}")
             if not lat_in:
                 if lat < min(lats):
-                    print(f"      â†’ Lat is {(min(lats) - lat) * 111000:.0f}m SOUTH of graph")
+                    print(f"      → Lat is {(min(lats) - lat) * 111000:.0f}m SOUTH of graph")
                 else:
-                    print(f"      â†’ Lat is {(lat - max(lats)) * 111000:.0f}m NORTH of graph")
+                    print(f"      → Lat is {(lat - max(lats)) * 111000:.0f}m NORTH of graph")
         
         # 3. Find nearest node to first GPS point
         test_lat, test_lon = coordinates[0]
@@ -2860,13 +2857,13 @@ class UnifiedGPSDataProcessor:
                     min_dist = dist
                     nearest_node = (node, data['y'], data['x'])
         
-        print(f"\nðŸ“ Nearest graph node to Point 0:")
+        print(f"\n📏 Nearest graph node to Point 0:")
         print(f"   Node: {nearest_node[0]}")
         print(f"   Location: ({nearest_node[1]:.6f}, {nearest_node[2]:.6f})")
         print(f"   Distance: {min_dist:.0f}m")
         
         # 4. Check map_manager.map_data for roads in this area
-        print(f"\nðŸ“Š Checking map_manager.map_data for roads near Point 0:")
+        print(f"\n📊 Checking map_manager.map_data for roads near Point 0:")
         roads_nearby = 0
         for road in self.map_manager.map_data.get('roads', []):
             for pt in road.get('geometry', []):
@@ -2879,7 +2876,7 @@ class UnifiedGPSDataProcessor:
         print(f"   Total roads within ~1km: {roads_nearby}")
         
         if roads_nearby > 0 and min_dist > 1000:
-            print(f"\n   âš ï¸ PROBLEM: Roads exist in map_data but NOT in road_graph!")
+            print(f"\n   ⚠️ PROBLEM: Roads exist in map_data but NOT in road_graph!")
             print(f"   The graph building step is filtering out these roads.")
     
     
@@ -2893,15 +2890,15 @@ class UnifiedGPSDataProcessor:
         from shapely.geometry import Point
         
         print("="*70)
-        print("ðŸ” DETAILED DIAGNOSTIC FOR SPECIFIC GPS POINTS")
+        print("🔍 DETAILED DIAGNOSTIC FOR SPECIFIC GPS POINTS")
         print("="*70)
         
         if self.road_graph is None:
-            print("âŒ No road_graph found!")
+            print("❌ No road_graph found!")
             return
         
-        print(f"\nðŸ“Š Road Graph: {self.road_graph.number_of_nodes()} nodes, {self.road_graph.number_of_edges()} edges")
-        print(f"ðŸ“Š Driven Edges: {len(self.driven_edges)} edges")
+        print(f"\n📊 Road Graph: {self.road_graph.number_of_nodes()} nodes, {self.road_graph.number_of_edges()} edges")
+        print(f"📊 Driven Edges: {len(self.driven_edges)} edges")
         
         points = [
             ("Point 1", lat1, lon1),
@@ -2910,11 +2907,11 @@ class UnifiedGPSDataProcessor:
         
         for label, lat, lon in points:
             print(f"\n{'='*70}")
-            print(f"ðŸ“ {label}: ({lat:.6f}, {lon:.6f})")
+            print(f"📍 {label}: ({lat:.6f}, {lon:.6f})")
             print(f"{'='*70}")
             
             # Find all edges within 100m
-            print(f"\nðŸ” Finding all road edges within 100m...")
+            print(f"\n🔍 Finding all road edges within 100m...")
             
             candidates = []
             gps_point = Point(lon, lat)
@@ -2950,30 +2947,30 @@ class UnifiedGPSDataProcessor:
             
             for j, cand in enumerate(candidates[:15]):  # Show top 15
                 name = cand['name'][:28] if cand['name'] else '(unnamed)'
-                driven = "âœ… YES" if cand['in_driven'] else "âŒ NO"
+                driven = "✅ YES" if cand['in_driven'] else "❌ NO"
                 print(f"   {j+1:<3} {cand['distance']:<8.1f} {name:<30} {cand['osmid']:<12} {cand['highway']:<12} {driven}")
             
             # Highlight the issue
             driven_candidates = [c for c in candidates if c['in_driven']]
             not_driven = [c for c in candidates if not c['in_driven']]
             
-            print(f"\n   ðŸ“Š Summary:")
+            print(f"\n   📊 Summary:")
             print(f"      Edges in driven set: {len(driven_candidates)}")
             print(f"      Edges NOT in driven set: {len(not_driven)}")
             
             if driven_candidates:
                 closest_driven = driven_candidates[0]
-                print(f"\n   âž¡ï¸  Closest DRIVEN edge: '{closest_driven['name']}' at {closest_driven['distance']:.1f}m")
+                print(f"\n   ➡️  Closest DRIVEN edge: '{closest_driven['name']}' at {closest_driven['distance']:.1f}m")
             
             if not_driven and candidates:
                 closest_overall = candidates[0]
                 if not closest_overall['in_driven']:
-                    print(f"   âš ï¸  Closest OVERALL edge: '{closest_overall['name']}' at {closest_overall['distance']:.1f}m (NOT DRIVEN)")
-                    print(f"   âš ï¸  THIS MAY BE THE CORRECT ROAD THAT WAS MISSED!")
+                    print(f"   ⚠️  Closest OVERALL edge: '{closest_overall['name']}' at {closest_overall['distance']:.1f}m (NOT DRIVEN)")
+                    print(f"   ⚠️  THIS MAY BE THE CORRECT ROAD THAT WAS MISSED!")
         
         # Check distance between the two points
         print(f"\n{'='*70}")
-        print("ðŸ“ GPS POINTS ANALYSIS")
+        print("📏 GPS POINTS ANALYSIS")
         print(f"{'='*70}")
         
         dist_between = geodesic((lat1, lon1), (lat2, lon2)).meters
@@ -3175,22 +3172,22 @@ class UnifiedGPSDataProcessor:
         from shapely.geometry import Point
         
         print("="*80)
-        print("ðŸ” VITERBI MAP MATCHING DEBUG - STEP BY STEP ANALYSIS")
+        print("🔍 VITERBI MAP MATCHING DEBUG - STEP BY STEP ANALYSIS")
         print("="*80)
         
         if self.road_graph is None:
-            print("âŒ No road graph loaded!")
+            print("❌ No road graph loaded!")
             return
         
-        print(f"\nðŸ“Š Road Graph: {self.road_graph.number_of_nodes()} nodes, {self.road_graph.number_of_edges()} edges")
-        print(f"ðŸ“ Analyzing {len(coordinates)} GPS points\n")
+        print(f"\n📊 Road Graph: {self.road_graph.number_of_nodes()} nodes, {self.road_graph.number_of_edges()} edges")
+        print(f"📍 Analyzing {len(coordinates)} GPS points\n")
         
         prev_best_edge = None
         prev_best_name = None
         
         for i, (lat, lon) in enumerate(coordinates):
             print(f"\n{'='*80}")
-            print(f"ðŸ“ POINT {i}: ({lat:.6f}, {lon:.6f})")
+            print(f"📍 POINT {i}: ({lat:.6f}, {lon:.6f})")
             print(f"{'='*80}")
             
             # Find all candidate edges within 100m
@@ -3229,17 +3226,17 @@ class UnifiedGPSDataProcessor:
             candidates.sort(key=lambda x: x['distance'])
             
             if not candidates:
-                print("   âŒ NO CANDIDATES FOUND WITHIN 100m!")
+                print("   ❌ NO CANDIDATES FOUND WITHIN 100m!")
                 prev_best_edge = None
                 prev_best_name = None
                 continue
             
-            print(f"\n   ðŸ“‹ Found {len(candidates)} candidate edges:")
+            print(f"\n   📋 Found {len(candidates)} candidate edges:")
             print(f"   {'#':<3} {'Dist':<8} {'Emission':<10} {'Connected':<10} {'Name':<25} {'Type':<12} {'OSM ID'}")
             print(f"   {'-'*3} {'-'*8} {'-'*10} {'-'*10} {'-'*25} {'-'*12} {'-'*12}")
             
             for j, cand in enumerate(candidates[:10]):  # Show top 10
-                conn_str = "âœ… YES" if cand['connected_to_prev'] else "âŒ NO"
+                conn_str = "✅ YES" if cand['connected_to_prev'] else "❌ NO"
                 name = cand['name'][:24] if cand['name'] else '(unnamed)'
                 print(f"   {j+1:<3} {cand['distance']:<8.1f} {cand['emission_prob']:<10.6f} {conn_str:<10} {name:<25} {cand['highway']:<12} {cand['osmid']}")
             
@@ -3247,7 +3244,7 @@ class UnifiedGPSDataProcessor:
             closest = candidates[0]
             closest_connected = next((c for c in candidates if c['connected_to_prev']), None)
             
-            print(f"\n   ðŸŽ¯ DECISION ANALYSIS:")
+            print(f"\n   🎯 DECISION ANALYSIS:")
             print(f"      Closest edge: '{closest['name']}' at {closest['distance']:.1f}m")
             
             if closest_connected and closest_connected != closest:
@@ -3255,19 +3252,19 @@ class UnifiedGPSDataProcessor:
                 
                 # This is where the problem happens!
                 if closest_connected['distance'] > closest['distance'] + 5:
-                    print(f"\n      âš ï¸  POTENTIAL PROBLEM DETECTED!")
+                    print(f"\n      ⚠️  POTENTIAL PROBLEM DETECTED!")
                     print(f"         The closest edge ({closest['distance']:.1f}m) is NOT connected to previous")
                     print(f"         The closest CONNECTED edge is {closest_connected['distance']:.1f}m away")
                     print(f"         Difference: {closest_connected['distance'] - closest['distance']:.1f}m")
                     
                     if closest_connected['distance'] > closest['distance'] * 2:
-                        print(f"         ðŸš¨ VITERBI WILL LIKELY CHOOSE THE WRONG ROAD!")
+                        print(f"         🚨 VITERBI WILL LIKELY CHOOSE THE WRONG ROAD!")
             
             # Simulate what Viterbi would choose
             # In reality, Viterbi considers the full sequence, but we can estimate
             if prev_best_edge:
                 # Calculate transition probabilities
-                print(f"\n   ðŸ”„ TRANSITION FROM PREVIOUS EDGE:")
+                print(f"\n   🔄 TRANSITION FROM PREVIOUS EDGE:")
                 print(f"      Previous: '{prev_best_name}'")
                 
                 best_combined_score = 0
@@ -3288,13 +3285,13 @@ class UnifiedGPSDataProcessor:
                         best_choice = cand
                     
                     conn_str = "CONNECTED" if cand['connected_to_prev'] else "disconnected"
-                    print(f"      â†’ '{cand['name'][:20]}': emission={emission:.6f} Ã— transition={transition:.2e} = {combined:.2e} ({conn_str})")
+                    print(f"      → '{cand['name'][:20]}': emission={emission:.6f} × transition={transition:.2e} = {combined:.2e} ({conn_str})")
                 
                 if best_choice:
-                    print(f"\n   âž¡ï¸  VITERBI WOULD CHOOSE: '{best_choice['name']}' at {best_choice['distance']:.1f}m")
+                    print(f"\n   ➡️  VITERBI WOULD CHOOSE: '{best_choice['name']}' at {best_choice['distance']:.1f}m")
                     
                     if best_choice != closest:
-                        print(f"   âš ï¸  THIS IS NOT THE CLOSEST EDGE! (closest was '{closest['name']}' at {closest['distance']:.1f}m)")
+                        print(f"   ⚠️  THIS IS NOT THE CLOSEST EDGE! (closest was '{closest['name']}' at {closest['distance']:.1f}m)")
                     
                     prev_best_edge = best_choice['edge']
                     prev_best_name = best_choice['name']
@@ -3303,7 +3300,7 @@ class UnifiedGPSDataProcessor:
                     prev_best_name = closest['name']
             else:
                 # First point - just pick closest
-                print(f"\n   âž¡ï¸  FIRST POINT - Selecting closest: '{closest['name']}'")
+                print(f"\n   ➡️  FIRST POINT - Selecting closest: '{closest['name']}'")
                 prev_best_edge = closest['edge']
                 prev_best_name = closest['name']
             
@@ -3311,7 +3308,7 @@ class UnifiedGPSDataProcessor:
             if i > 0:
                 prev_lat, prev_lon = coordinates[i-1]
                 gps_dist = geodesic((prev_lat, prev_lon), (lat, lon)).meters
-                print(f"\n   ðŸ“ GPS distance from previous point: {gps_dist:.1f}m")
+                print(f"\n   📏 GPS distance from previous point: {gps_dist:.1f}m")
         
         print(f"\n{'='*80}")
         print("END DEBUG")
@@ -3468,7 +3465,7 @@ class UnifiedGPSDataProcessor:
                     fixes_made += 1
         
         if fixes_made > 0:
-            print(f"  âœ… Fixed {fixes_made} reverse-edge zig-zags")
+            print(f"  ✅ Fixed {fixes_made} reverse-edge zig-zags")
         
         return fixed
     
@@ -3489,7 +3486,7 @@ class UnifiedGPSDataProcessor:
         gap_count = 0
         bridge_count = 0
     
-        print("\nðŸ”§ DEBUG: Route Geometry Reconstruction (Point-by-Point Projection)")
+        print("\n🔧 DEBUG: Route Geometry Reconstruction (Point-by-Point Projection)")
         print(f"   Total GPS points: {len(matched_edges)}")
         print(f"   Unique edges: {len(set(e for e in matched_edges if e is not None))}")
     
@@ -3518,7 +3515,7 @@ class UnifiedGPSDataProcessor:
                     gap_dist = geodesic(prev_coord, curr_coord).meters
     
                     if gap_dist > 10.0:
-                        #print(f"   âš ï¸  GAP {gap_count}: Checking bridge for {gap_dist:.1f}m gap...")
+                        #print(f"   ⚠️  GAP {gap_count}: Checking bridge for {gap_dist:.1f}m gap...")
                         
                         # Try to bridge with shortest path
                         try:
@@ -3539,12 +3536,12 @@ class UnifiedGPSDataProcessor:
                                             coords_added += 1
                                     if coords_added > 0:
                                         bridge_count += 1
-                                        #print(f"      âœ… Bridged with {coords_added} points (path: {path_length:.0f}m)")
+                                        #print(f"      ✅ Bridged with {coords_added} points (path: {path_length:.0f}m)")
                             else:
-                                print(f"      âš ï¸  Path too long ({path_length:.0f}m > {gap_dist*2:.0f}m), skipping bridge")
+                                print(f"      ⚠️  Path too long ({path_length:.0f}m > {gap_dist*2:.0f}m), skipping bridge")
                             
                         except (nx.NetworkXNoPath, nx.NodeNotFound):
-                            print(f"      âš ï¸  No path found, skipping bridge")
+                            print(f"      ⚠️  No path found, skipping bridge")
     
             # Project GPS point onto matched edge
             try:
@@ -3566,23 +3563,23 @@ class UnifiedGPSDataProcessor:
                 line = LineString([(lon, lat) for lat, lon in route_coords])
                 simplified = line.simplify(0.00001, preserve_topology=True)
                 route_coords = [(p[1], p[0]) for p in simplified.coords]
-                print(f"   ðŸ”„ Simplified from {len(line.coords)} to {len(route_coords)} points")
+                print(f"   🔄 Simplified from {len(line.coords)} to {len(route_coords)} points")
             except Exception as e:
-                print(f"   âš ï¸  Simplification failed: {e}")
+                print(f"   ⚠️  Simplification failed: {e}")
     
-        print(f"\n   ðŸ“Š Summary:")
+        print(f"\n   📊 Summary:")
         print(f"      Total GPS points processed: {len(matched_edges)}")
         print(f"      Total route coordinates: {len(route_coords)}")
         print(f"      Gaps detected: {gap_count}")
         print(f"      Gaps bridged: {bridge_count}")
         if gap_count > bridge_count:
-            print(f"      âš ï¸  {gap_count - bridge_count} gaps not bridged (path too long or no path)")
+            print(f"      ⚠️  {gap_count - bridge_count} gaps not bridged (path too long or no path)")
     
         return route_coords
     def analyze_road_distribution(self):
         """Analyze where roads actually exist in the graph"""
         
-        print(f"\nðŸ” ANALYZING ROAD DISTRIBUTION IN GRAPH")
+        print(f"\n🔍 ANALYZING ROAD DISTRIBUTION IN GRAPH")
         print("="*60)
         
         # Collect all node coordinates
@@ -3593,13 +3590,13 @@ class UnifiedGPSDataProcessor:
                 lats.append(data['y'])
                 lons.append(data['x'])
         
-        print(f"\nðŸ“Š Total nodes: {len(lats)}")
+        print(f"\n📊 Total nodes: {len(lats)}")
         
         # Create latitude bands
         lat_min, lat_max = min(lats), max(lats)
         band_size = 0.01  # ~1.1 km bands
         
-        print(f"\nðŸ“Š Road density by latitude band (~1.1km each):")
+        print(f"\n📊 Road density by latitude band (~1.1km each):")
         print(f"{'Latitude Range':<25} {'Nodes':<10} {'Density'}")
         print(f"{'-'*25} {'-'*10} {'-'*20}")
         
@@ -3607,7 +3604,7 @@ class UnifiedGPSDataProcessor:
         while current_lat < lat_max:
             band_end = current_lat + band_size
             count = sum(1 for lat in lats if current_lat <= lat < band_end)
-            bar = 'â–ˆ' * (count // 100) if count > 0 else 'â–‘'
+            bar = '█' * (count // 100) if count > 0 else '░'
             print(f"{current_lat:.4f} - {band_end:.4f}    {count:<10} {bar}")
             current_lat = band_end
         
@@ -3618,10 +3615,10 @@ class UnifiedGPSDataProcessor:
         nearby_nodes = sum(1 for lat, lon in zip(lats, lons) 
                            if abs(lat - test_lat) < nearby_radius and abs(lon - test_lon) < nearby_radius)
         
-        print(f"\nðŸ“ Nodes within 1km of test point ({test_lat}, {test_lon}): {nearby_nodes}")
+        print(f"\n📍 Nodes within 1km of test point ({test_lat}, {test_lon}): {nearby_nodes}")
         
         if nearby_nodes == 0:
-            print("   âš ï¸  NO ROAD DATA EXISTS IN THIS AREA!")
+            print("   ⚠️  NO ROAD DATA EXISTS IN THIS AREA!")
 
 
     def diagnose_connectivity_at_point(self, lat, lon):
@@ -3631,7 +3628,7 @@ class UnifiedGPSDataProcessor:
         from shapely.geometry import Point
         
         print("="*70)
-        print(f"ðŸ” CONNECTIVITY DIAGNOSTIC AT ({lat}, {lon})")
+        print(f"🔍 CONNECTIVITY DIAGNOSTIC AT ({lat}, {lon})")
         print("="*70)
         
         gps_point = Point(lon, lat)
@@ -3662,32 +3659,32 @@ class UnifiedGPSDataProcessor:
         closest_driven = next((c for c in candidates if c['in_driven']), None)
         
         if not closest or not closest_driven:
-            print("âŒ Could not find edges for comparison")
+            print("❌ Could not find edges for comparison")
             return
         
-        print(f"\nðŸ“ CLOSEST EDGE (should be selected):")
+        print(f"\n📍 CLOSEST EDGE (should be selected):")
         print(f"   Name: '{closest['name']}'")
         print(f"   Distance: {closest['distance']:.1f}m")
         print(f"   Edge: {closest['edge']}")
-        print(f"   Nodes: {closest['u']} â†’ {closest['v']}")
-        print(f"   In Driven Set: {'âœ… YES' if closest['in_driven'] else 'âŒ NO'}")
+        print(f"   Nodes: {closest['u']} → {closest['v']}")
+        print(f"   In Driven Set: {'✅ YES' if closest['in_driven'] else '❌ NO'}")
         
-        print(f"\nðŸ“ CLOSEST DRIVEN EDGE (was selected):")
+        print(f"\n📍 CLOSEST DRIVEN EDGE (was selected):")
         print(f"   Name: '{closest_driven['name']}'")
         print(f"   Distance: {closest_driven['distance']:.1f}m")
         print(f"   Edge: {closest_driven['edge']}")
-        print(f"   Nodes: {closest_driven['u']} â†’ {closest_driven['v']}")
+        print(f"   Nodes: {closest_driven['u']} → {closest_driven['v']}")
         
         # Check if they share any nodes (direct connectivity)
         shared_nodes = set([closest['u'], closest['v']]) & set([closest_driven['u'], closest_driven['v']])
-        print(f"\nðŸ”— DIRECT CONNECTIVITY:")
+        print(f"\n🔗 DIRECT CONNECTIVITY:")
         if shared_nodes:
-            print(f"   âœ… Share nodes: {shared_nodes}")
+            print(f"   ✅ Share nodes: {shared_nodes}")
         else:
-            print(f"   âŒ No shared nodes - NOT directly connected")
+            print(f"   ❌ No shared nodes - NOT directly connected")
         
         # Check if there's a path between them
-        print(f"\nðŸ›¤ï¸  PATH ANALYSIS:")
+        print(f"\n🛤️  PATH ANALYSIS:")
         import networkx as nx
         
         # Try to find path from closest to driven
@@ -3698,14 +3695,14 @@ class UnifiedGPSDataProcessor:
                         self.road_graph, start_node, end_node, weight='length'
                     )
                     path = nx.shortest_path(self.road_graph, start_node, end_node)
-                    print(f"   Path {start_node} â†’ {end_node}: {path_length:.1f}m ({len(path)} nodes)")
+                    print(f"   Path {start_node} → {end_node}: {path_length:.1f}m ({len(path)} nodes)")
                 except nx.NetworkXNoPath:
-                    print(f"   Path {start_node} â†’ {end_node}: âŒ NO PATH EXISTS")
+                    print(f"   Path {start_node} → {end_node}: ❌ NO PATH EXISTS")
                 except nx.NodeNotFound as e:
-                    print(f"   Path {start_node} â†’ {end_node}: âŒ Node not found: {e}")
+                    print(f"   Path {start_node} → {end_node}: ❌ Node not found: {e}")
         
         # Check what edges connect TO the closest edge
-        print(f"\nðŸ”€ EDGES CONNECTING TO CLOSEST EDGE ('{closest['name']}'):")
+        print(f"\n🔀 EDGES CONNECTING TO CLOSEST EDGE ('{closest['name']}'):")
         
         # Incoming edges to u
         incoming_to_u = list(self.road_graph.in_edges(closest['u'], data=True))
@@ -3713,7 +3710,7 @@ class UnifiedGPSDataProcessor:
         for u_in, v_in, data in incoming_to_u[:5]:
             name = data.get('name', 'unnamed')
             in_driven = (u_in, v_in, 0) in self.driven_edges
-            print(f"      â† '{name}' {'âœ… DRIVEN' if in_driven else ''}")
+            print(f"      ← '{name}' {'✅ DRIVEN' if in_driven else ''}")
         
         # Outgoing edges from v
         outgoing_from_v = list(self.road_graph.out_edges(closest['v'], data=True))
@@ -3721,17 +3718,17 @@ class UnifiedGPSDataProcessor:
         for u_out, v_out, data in outgoing_from_v[:5]:
             name = data.get('name', 'unnamed')
             in_driven = (u_out, v_out, 0) in self.driven_edges
-            print(f"      â†’ '{name}' {'âœ… DRIVEN' if in_driven else ''}")
+            print(f"      → '{name}' {'✅ DRIVEN' if in_driven else ''}")
         
         # Check what edges connect TO the driven edge
-        print(f"\nðŸ”€ EDGES CONNECTING TO DRIVEN EDGE ('{closest_driven['name']}'):")
+        print(f"\n🔀 EDGES CONNECTING TO DRIVEN EDGE ('{closest_driven['name']}'):")
         
         incoming_to_driven = list(self.road_graph.in_edges(closest_driven['u'], data=True))
         print(f"   Incoming to node {closest_driven['u']}: {len(incoming_to_driven)} edges")
         for u_in, v_in, data in incoming_to_driven[:5]:
             name = data.get('name', 'unnamed')
             in_driven = (u_in, v_in, 0) in self.driven_edges
-            print(f"      â† '{name}' {'âœ… DRIVEN' if in_driven else ''}")
+            print(f"      ← '{name}' {'✅ DRIVEN' if in_driven else ''}")
         
         print(f"\n{'='*70}")
         print("END CONNECTIVITY DIAGNOSTIC")
@@ -3739,54 +3736,54 @@ class UnifiedGPSDataProcessor:
     
     def diagnose_node_connectivity(self, node_id):
         """Check what's happening at a specific node"""
-        print(f"\nðŸ” NODE CONNECTIVITY: {node_id}")
+        print(f"\n🔍 NODE CONNECTIVITY: {node_id}")
         print("="*50)
         
         if node_id not in self.road_graph:
-            print(f"âŒ Node {node_id} not in graph!")
+            print(f"❌ Node {node_id} not in graph!")
             return
         
         # Get node position
         node_data = self.road_graph.nodes[node_id]
         lat = node_data.get('y', 'N/A')
         lon = node_data.get('x', 'N/A')
-        print(f"ðŸ“ Position: ({lat}, {lon})")
+        print(f"📍 Position: ({lat}, {lon})")
         
         # Incoming edges
         incoming = list(self.road_graph.in_edges(node_id, data=True))
-        print(f"\nâ¬…ï¸  INCOMING EDGES ({len(incoming)}):")
+        print(f"\n⬅️  INCOMING EDGES ({len(incoming)}):")
         for u, v, data in incoming:
             name = data.get('name', 'unnamed')
             osmid = data.get('osmid', 'N/A')
             edge = (u, v, 0)
-            driven = "âœ… DRIVEN" if edge in self.driven_edges else ""
-            print(f"   {u} â†’ {v}: '{name}' (OSM:{osmid}) {driven}")
+            driven = "✅ DRIVEN" if edge in self.driven_edges else ""
+            print(f"   {u} → {v}: '{name}' (OSM:{osmid}) {driven}")
         
         # Outgoing edges
         outgoing = list(self.road_graph.out_edges(node_id, data=True))
-        print(f"\nâž¡ï¸  OUTGOING EDGES ({len(outgoing)}):")
+        print(f"\n➡️  OUTGOING EDGES ({len(outgoing)}):")
         for u, v, data in outgoing:
             name = data.get('name', 'unnamed')
             osmid = data.get('osmid', 'N/A')
             edge = (u, v, 0)
-            driven = "âœ… DRIVEN" if edge in self.driven_edges else ""
-            print(f"   {u} â†’ {v}: '{name}' (OSM:{osmid}) {driven}")
+            driven = "✅ DRIVEN" if edge in self.driven_edges else ""
+            print(f"   {u} → {v}: '{name}' (OSM:{osmid}) {driven}")
         
         # Check degree
         in_deg = self.road_graph.in_degree(node_id)
         out_deg = self.road_graph.out_degree(node_id)
-        print(f"\nðŸ“Š Degree: in={in_deg}, out={out_deg}, total={in_deg + out_deg}")
+        print(f"\n📊 Degree: in={in_deg}, out={out_deg}, total={in_deg + out_deg}")
         
         if out_deg == 0:
-            print("âš ï¸  WARNING: This is a DEAD END node (no outgoing edges)!")
+            print("⚠️  WARNING: This is a DEAD END node (no outgoing edges)!")
         if in_deg == 0:
-            print("âš ï¸  WARNING: This node has no incoming edges!")
+            print("⚠️  WARNING: This node has no incoming edges!")
 
     def diagnose_driven_edges_near_point(self, lat, lon, radius=100):
         """Show all DRIVEN edges near a point"""
         from shapely.geometry import Point
         
-        print(f"\nðŸ” DRIVEN EDGES NEAR ({lat}, {lon})")
+        print(f"\n🔍 DRIVEN EDGES NEAR ({lat}, {lon})")
         print("="*60)
         
         gps_point = Point(lon, lat)
@@ -3811,15 +3808,15 @@ class UnifiedGPSDataProcessor:
         
         driven_nearby.sort(key=lambda x: x['distance'])
         
-        print(f"\nðŸ“Š Found {len(driven_nearby)} DRIVEN edges within {radius}m:\n")
+        print(f"\n📊 Found {len(driven_nearby)} DRIVEN edges within {radius}m:\n")
         print(f"{'#':<3} {'Dist':<8} {'Name':<25} {'OSM ID':<12} {'Edge Nodes'}")
         print(f"{'-'*3} {'-'*8} {'-'*25} {'-'*12} {'-'*30}")
         
         for i, e in enumerate(driven_nearby):
-            print(f"{i+1:<3} {e['distance']:<8.1f} {e['name'][:24]:<25} {e['osmid']:<12} {e['u']} â†’ {e['v']}")
+            print(f"{i+1:<3} {e['distance']:<8.1f} {e['name'][:24]:<25} {e['osmid']:<12} {e['u']} → {e['v']}")
         
         # Check if Rue Principale edges are in driven set
-        print(f"\nðŸ›£ï¸  Checking 'Rue Principale' edges:")
+        print(f"\n🛣️  Checking 'Rue Principale' edges:")
         rue_principale_edges = [
             (1342273213, 292875390, 0),   # Incoming to intersection
             (292875390, 1727025617, 0),   # Through intersection
@@ -3828,24 +3825,24 @@ class UnifiedGPSDataProcessor:
         
         for edge in rue_principale_edges:
             in_driven = edge in self.driven_edges
-            print(f"   {edge}: {'âœ… DRIVEN' if in_driven else 'âŒ NOT DRIVEN'}")
+            print(f"   {edge}: {'✅ DRIVEN' if in_driven else '❌ NOT DRIVEN'}")
 
     def check_graph_coverage_for_gps(self, week_label="Week 1"):
         """Check if road graph covers the GPS data"""
         
-        print(f"\nðŸ” CHECKING ROAD GRAPH COVERAGE FOR {week_label}")
+        print(f"\n🔍 CHECKING ROAD GRAPH COVERAGE FOR {week_label}")
         print("="*60)
         
         # Get GPS bounds
         df = self.weekly_data.get(week_label)
         if df is None:
-            print("âŒ No data for this week")
+            print("❌ No data for this week")
             return
         
         gps_min_lat, gps_max_lat = df['lat'].min(), df['lat'].max()
         gps_min_lon, gps_max_lon = df['lon'].min(), df['lon'].max()
         
-        print(f"\nðŸ“ GPS Data Bounds ({len(df)} points):")
+        print(f"\n📍 GPS Data Bounds ({len(df)} points):")
         print(f"   Latitude:  {gps_min_lat:.6f} to {gps_max_lat:.6f}")
         print(f"   Longitude: {gps_min_lon:.6f} to {gps_max_lon:.6f}")
         
@@ -3856,7 +3853,7 @@ class UnifiedGPSDataProcessor:
         graph_min_lat, graph_max_lat = min(all_lats), max(all_lats)
         graph_min_lon, graph_max_lon = min(all_lons), max(all_lons)
         
-        print(f"\nðŸ—ºï¸  Road Graph Bounds ({self.road_graph.number_of_nodes()} nodes):")
+        print(f"\n🗺️  Road Graph Bounds ({self.road_graph.number_of_nodes()} nodes):")
         print(f"   Latitude:  {graph_min_lat:.6f} to {graph_max_lat:.6f}")
         print(f"   Longitude: {graph_min_lon:.6f} to {graph_max_lon:.6f}")
         
@@ -3871,12 +3868,12 @@ class UnifiedGPSDataProcessor:
             (df['lon'] < graph_min_lon) | (df['lon'] > graph_max_lon)
         ]
         
-        print(f"\nðŸ“Š GPS Points Coverage:")
-        print(f"   âœ… Within graph bounds: {len(in_bounds)} ({len(in_bounds)/len(df)*100:.1f}%)")
-        print(f"   âŒ Outside graph bounds: {len(out_of_bounds)} ({len(out_of_bounds)/len(df)*100:.1f}%)")
+        print(f"\n📊 GPS Points Coverage:")
+        print(f"   ✅ Within graph bounds: {len(in_bounds)} ({len(in_bounds)/len(df)*100:.1f}%)")
+        print(f"   ❌ Outside graph bounds: {len(out_of_bounds)} ({len(out_of_bounds)/len(df)*100:.1f}%)")
         
         if len(out_of_bounds) > 0:
-            print(f"\nâš ï¸  PROBLEM: {len(out_of_bounds)} GPS points are outside the road graph!")
+            print(f"\n⚠️  PROBLEM: {len(out_of_bounds)} GPS points are outside the road graph!")
             print(f"\n   Sample out-of-bounds points:")
             for idx, row in out_of_bounds.head(5).iterrows():
                 print(f"      Index {idx}: ({row['lat']:.6f}, {row['lon']:.6f})")
@@ -3885,13 +3882,13 @@ class UnifiedGPSDataProcessor:
             test_lat, test_lon = 48.810827, 7.583511
             is_in = (graph_min_lat <= test_lat <= graph_max_lat) and (graph_min_lon <= test_lon <= graph_max_lon)
             print(f"\n   Your test point ({test_lat}, {test_lon}):")
-            print(f"      Within graph bounds: {'âœ… YES' if is_in else 'âŒ NO'}")
+            print(f"      Within graph bounds: {'✅ YES' if is_in else '❌ NO'}")
     
     def find_nearest_edges_anywhere(self, lat, lon, max_results=10):
         """Find the nearest edges regardless of distance"""
         from shapely.geometry import Point
         
-        print(f"\nðŸ” FINDING NEAREST EDGES TO ({lat}, {lon})")
+        print(f"\n🔍 FINDING NEAREST EDGES TO ({lat}, {lon})")
         print("="*60)
         
         gps_point = Point(lon, lat)
@@ -3912,7 +3909,7 @@ class UnifiedGPSDataProcessor:
         
         all_edges.sort(key=lambda x: x['distance'])
         
-        print(f"\nðŸ“Š Top {max_results} nearest edges (out of {len(all_edges)} total):\n")
+        print(f"\n📊 Top {max_results} nearest edges (out of {len(all_edges)} total):\n")
         print(f"{'#':<3} {'Distance':<12} {'Name':<30} {'OSM ID'}")
         print(f"{'-'*3} {'-'*12} {'-'*30} {'-'*15}")
         
@@ -3921,7 +3918,7 @@ class UnifiedGPSDataProcessor:
         
         if all_edges:
             closest = all_edges[0]
-            print(f"\nðŸ“ Closest edge is {closest['distance']:.1f}m away")
+            print(f"\n📍 Closest edge is {closest['distance']:.1f}m away")
             print(f"   Name: '{closest['name']}'")
             print(f"   Edge: {closest['edge']}")
             
@@ -3939,7 +3936,7 @@ class UnifiedGPSDataProcessor:
         """
         Find where a specific road (by OSM ID) first appears in driven edges
         """
-        print(f"\nðŸ” Finding first occurrence of OSM ID {target_osmid} in driven edges")
+        print(f"\n🔍 Finding first occurrence of OSM ID {target_osmid} in driven edges")
         print("="*60)
         
         matches = []
@@ -3958,7 +3955,7 @@ class UnifiedGPSDataProcessor:
                     'v_lon': v_data.get('x'),
                 })
         
-        print(f"\nðŸ“Š Found {len(matches)} driven edges with OSM ID {target_osmid}:")
+        print(f"\n📊 Found {len(matches)} driven edges with OSM ID {target_osmid}:")
         for i, m in enumerate(matches):
             print(f"\n   Edge {i+1}: {m['edge']}")
             print(f"   Name: '{m['name']}'")
@@ -3967,14 +3964,14 @@ class UnifiedGPSDataProcessor:
         
     def debug_driven_edges_detail(self):
         """Debug the driven_edges set"""
-        print(f"\nðŸ” DEBUGGING DRIVEN EDGES SET")
+        print(f"\n🔍 DEBUGGING DRIVEN EDGES SET")
         print("="*60)
         
-        print(f"\nðŸ“Š Total driven edges: {len(self.driven_edges)}")
-        print(f"ðŸ“Š Type: {type(self.driven_edges)}")
+        print(f"\n📊 Total driven edges: {len(self.driven_edges)}")
+        print(f"📊 Type: {type(self.driven_edges)}")
         
         # Show first 10 driven edges
-        print(f"\nðŸ“‹ First 10 driven edges:")
+        print(f"\n📋 First 10 driven edges:")
         for i, edge in enumerate(list(self.driven_edges)[:10]):
             try:
                 data = self.road_graph.edges[edge]
@@ -3985,7 +3982,7 @@ class UnifiedGPSDataProcessor:
                 print(f"   {i+1}. {edge} - Error: {e}")
         
         # Check the specific edges we found earlier
-        print(f"\nðŸ” Checking specific edges:")
+        print(f"\n🔍 Checking specific edges:")
         test_edges = [
             (4800949776, 4450438621, 0),
             (4450438621, 2100350117, 0),
@@ -3993,7 +3990,7 @@ class UnifiedGPSDataProcessor:
         
         for edge in test_edges:
             in_set = edge in self.driven_edges
-            print(f"   {edge}: {'âœ… IN SET' if in_set else 'âŒ NOT IN SET'}")
+            print(f"   {edge}: {'✅ IN SET' if in_set else '❌ NOT IN SET'}")
             
             if in_set:
                 try:
@@ -4004,7 +4001,7 @@ class UnifiedGPSDataProcessor:
                     pass
         
         # Count unique OSM IDs in driven edges
-        print(f"\nðŸ“Š Unique road names in driven edges:")
+        print(f"\n📊 Unique road names in driven edges:")
         names = {}
         for edge in self.driven_edges:
             try:
@@ -4024,13 +4021,13 @@ class UnifiedGPSDataProcessor:
         """Verify exactly what's happening with edge detection"""
         from shapely.geometry import Point
         
-        print(f"\nðŸ” VERIFYING EDGE DETECTION AT ({lat}, {lon})")
+        print(f"\n🔍 VERIFYING EDGE DETECTION AT ({lat}, {lon})")
         print("="*60)
         
         gps_point = Point(lon, lat)
         
         # Find ALL edges within 50m (not just driven)
-        print(f"\nðŸ“Š All edges within 50m:")
+        print(f"\n📊 All edges within 50m:")
         
         all_nearby = []
         for u, v, key, data in self.road_graph.edges(keys=True, data=True):
@@ -4057,15 +4054,15 @@ class UnifiedGPSDataProcessor:
         print(f"{'-'*3} {'-'*8} {'-'*25} {'-'*12} {'-'*40}")
         
         for i, e in enumerate(all_nearby[:20]):
-            driven_str = "âœ… YES" if e['in_driven'] else "âŒ NO"
+            driven_str = "✅ YES" if e['in_driven'] else "❌ NO"
             print(f"{i+1:<3} {e['distance']:<8.1f} {e['name'][:24]:<25} {driven_str:<12} {e['edge']}")
         
         # Summary
         driven_count = sum(1 for e in all_nearby if e['in_driven'])
-        print(f"\nðŸ“Š Summary: {driven_count} driven edges out of {len(all_nearby)} total within 50m")
+        print(f"\n📊 Summary: {driven_count} driven edges out of {len(all_nearby)} total within 50m")
         
         # Now check what the route_geometry looks like near this point
-        print(f"\nðŸ›¤ï¸  Checking route_geometry near this point:")
+        print(f"\n🛤️  Checking route_geometry near this point:")
         if self.route_geometry is not None:
             from shapely.geometry import Point
             from shapely.ops import nearest_points
@@ -4076,7 +4073,7 @@ class UnifiedGPSDataProcessor:
             print(f"   Nearest point on route: ({nearest_pt.y:.6f}, {nearest_pt.x:.6f})")
             print(f"   Distance to route: {dist_to_route:.1f}m")
         else:
-            print("   âŒ No route_geometry available")
+            print("   ❌ No route_geometry available")
 
     
     def _extract_edge_segment(self, edge_coords, start_dist, end_dist, edge_geom):
@@ -4372,7 +4369,7 @@ class UnifiedGPSDataProcessor:
             return
     
         try:
-            print("  ðŸ” Building spatial index for fast edge queries...")
+            print("  🔍 Building spatial index for fast edge queries...")
             
             self._edge_geometries = []
             self._edge_keys_list = []  # Parallel list: same index = same edge
@@ -4392,12 +4389,12 @@ class UnifiedGPSDataProcessor:
     
             self._edge_spatial_index = STRtree(self._edge_geometries)
             
-            print(f"    âœ… Spatial index built for {len(self._edge_keys_list)} edges")
+            print(f"    ✅ Spatial index built for {len(self._edge_keys_list)} edges")
     
         except Exception as e:
             import traceback
             traceback.print_exc()
-            print(f"    âš ï¸  Spatial index build failed: {e}")
+            print(f"    ⚠️  Spatial index build failed: {e}")
             self._edge_spatial_index = None
     
     
@@ -4458,7 +4455,7 @@ class UnifiedGPSDataProcessor:
         cache_file = os.path.join(self.cache_dir, f"road_graph_{area_hash}.pkl")
         
         if False:
-            print("  ðŸ“‹ Loading cached road graph...")
+            print("  📋 Loading cached road graph...")
             try:
                 with open(cache_file, 'rb') as f:
                     graph_data = pickle.load(f)
@@ -4468,7 +4465,7 @@ class UnifiedGPSDataProcessor:
                     self.geometry_cache = graph_data['geometry_cache']
                 return True
             except Exception as e:
-                print(f"  âš ï¸  Cache load failed: {e}")
+                print(f"  ⚠️  Cache load failed: {e}")
                 return False
         return False
         
@@ -4665,12 +4662,12 @@ class UnifiedGPSDataProcessor:
                             corrections_made += 2
 
             if corrections_made > 0:
-                print(f"  âœ… Trajectory smoothing corrected {corrections_made} erroneous edge assignments")
+                print(f"  ✅ Trajectory smoothing corrected {corrections_made} erroneous edge assignments")
 
             return smoothed
 
         except Exception as e:
-            print(f"  âš ï¸  Trajectory smoothing failed: {e}")
+            print(f"  ⚠️  Trajectory smoothing failed: {e}")
             return matched_edges
 
     def _is_point_feasible_on_edge(self, lon, lat, edge_key, max_dist=30):
@@ -4895,7 +4892,7 @@ class UnifiedGPSDataProcessor:
             point = Point(lon, lat)
 
             # Convert max_dist to degrees (approximate)
-            # At mid-latitudes, 1 degree â‰ˆ 111 km
+            # At mid-latitudes, 1 degree ≈ 111 km
             buffer_deg = max_dist / 111000.0 * 2  # Double for safety
 
             # Define bounding box
@@ -4993,7 +4990,7 @@ class UnifiedRoadContextGPSAnalyzer:
         """
         Universal analysis method that handles both single and multi-week data
         """
-        print(f"ðŸ›£ï¸  Universal GPS Analysis Starting...")
+        print(f"🛣️  Universal GPS Analysis Starting...")
         print("="*60)
         
         # Step 1: Determine if single or multi-week analysis
@@ -5020,14 +5017,14 @@ class UnifiedRoadContextGPSAnalyzer:
 
     def _analyze_single_trip(self, csv_file, driver_name, output_prefix):
         """Analyze single trip with road context - Returns weekly_results structure"""
-        print("ðŸ“Š Single-trip analysis mode")
+        print("📊 Single-trip analysis mode")
 
          #Handle single file from list
 
             
         # Load single CSV
         if not self.processor.load_and_process_csv(csv_file):
-            print("âŒ Failed to load GPS data")
+            print("❌ Failed to load GPS data")
             return False
         
         # Get bounding box and download map data
@@ -5041,7 +5038,7 @@ class UnifiedRoadContextGPSAnalyzer:
         driven_road_ids = self.processor.get_driven_road_ids()
         route_geometry = self.processor.route_geometry
         
-        # FIX #3: Capture driven_edges âœ…
+        # FIX #3: Capture driven_edges ✅
         driven_edges = self.processor.driven_edges.copy() if hasattr(self.processor, 'driven_edges') else set()
         
         self.map_manager.set_road_context(driven_road_ids, route_geometry)
@@ -5074,20 +5071,42 @@ class UnifiedRoadContextGPSAnalyzer:
             }
         }
 
-
-
+        # Generate reports using unified generator
+        driver_info = {
+            'name': driver_name or 'Driver',
+            'report_type': 'Single Trip Analysis',
+            'analysis_date': datetime.now().strftime('%Y-%m-%d')
+        }
+        
+        # Create unified reporter
+        self.reporter = UnifiedReportGenerator(
+            weekly_results=weekly_results,
+            processor=self.processor,
+            driver_info=driver_info,
+            map_manager=self.map_manager
+        )
+        
+        self.reporter.print_summary()
+        
+        return {
+            'type': 'single_trip',
+            'files_processed': 1,
+            'weekly_results': weekly_results,
+            'report_file': "generated",
+            'weeks_analyzed': 1
+        }
     
     def _analyze_multi_week(self, csv_files_or_pattern, driver_name, output_prefix):
         """Analyze multiple weeks - Returns same weekly_results structure"""
-        print("ðŸ“Š Multi-week analysis mode")
+        print("📊 Multi-week analysis mode")
         
         # Load multiple CSVs
         if not self.processor.load_multiple_csvs(csv_files_or_pattern, driver_name):
-            print("âŒ Failed to load multi-week data")
+            print("❌ Failed to load multi-week data")
             return False
         
         # ALWAYS use combined download to ensure all GPS points have road coverage
-        print("ðŸ“ Downloading map data for ALL weeks combined...")
+        print("📍 Downloading map data for ALL weeks combined...")
         bbox = self.processor.get_weekly_bounding_boxes()  # Gets combined bbox
         print(f"   Combined bbox: lat [{bbox[0]:.4f}, {bbox[2]:.4f}], lon [{bbox[1]:.4f}, {bbox[3]:.4f}]")
         success = self.map_manager.download_area_data(bbox, f"combined_{driver_name}")
@@ -5121,7 +5140,7 @@ class UnifiedRoadContextGPSAnalyzer:
         # Print summary  
         self.reporter.print_summary()
         
-        print(f"\nðŸŽ‰ Multi-Week Analysis Complete!")
+        print(f"\n🎉 Multi-Week Analysis Complete!")
 
         
         return {
@@ -5148,17 +5167,17 @@ class MultiWeekBehaviorAnalyzer:
         
     def analyze_all_weeks(self):
         """Analyze each week individually and calculate trends - WITH COMBINED GRAPH"""
-        print("ðŸŽ¯ Running multi-week behavior analysis...")
+        print("🎯 Running multi-week behavior analysis...")
         
         # Check if we already have combined map data loaded
         existing_roads = len(self.map_manager.map_data.get('roads', []))
         use_combined_data = existing_roads > 5000
         
         if use_combined_data:
-            print(f"   âœ… Using pre-loaded combined map data ({existing_roads} roads)")
+            print(f"   ✅ Using pre-loaded combined map data ({existing_roads} roads)")
         
         # ========== BUILD COMBINED ROAD GRAPH ONCE ==========
-        print(f"\nðŸ›£ï¸ Building combined road graph for ALL weeks...")
+        print(f"\n🛣️ Building combined road graph for ALL weeks...")
         
         # Create combined dataframe with all GPS points from all weeks
         all_dfs = []
@@ -5166,7 +5185,7 @@ class MultiWeekBehaviorAnalyzer:
             all_dfs.append(week_data.copy())
         
         combined_df = pd.concat(all_dfs, ignore_index=True)
-        print(f"   ðŸ“Š Combined GPS data: {len(combined_df)} points from {len(self.processor.weekly_data)} weeks")
+        print(f"   📊 Combined GPS data: {len(combined_df)} points from {len(self.processor.weekly_data)} weeks")
         
         # Build the road graph using combined data (covers ALL weeks)
         self.processor._perform_map_matching(combined_df, build_graph_only=True, rebuild_graph=True)
@@ -5178,7 +5197,7 @@ class MultiWeekBehaviorAnalyzer:
             graph_lats = [data['y'] for _, data in self.processor.road_graph.nodes(data=True) if 'y' in data]
             graph_lons = [data['x'] for _, data in self.processor.road_graph.nodes(data=True) if 'x' in data]
             
-            print(f"   âœ… Combined road graph built:")
+            print(f"   ✅ Combined road graph built:")
             print(f"      Nodes: {graph_nodes}, Edges: {graph_edges}")
             print(f"      Lat range: [{min(graph_lats):.4f}, {max(graph_lats):.4f}]")
             print(f"      Lon range: [{min(graph_lons):.4f}, {max(graph_lons):.4f}]")
@@ -5189,11 +5208,11 @@ class MultiWeekBehaviorAnalyzer:
         
         # Analyze each week using the SAME combined graph
         for week_label, week_data in self.processor.weekly_data.items():
-            print(f"\n  ðŸ“Š Analyzing {week_label}...")
+            print(f"\n  📊 Analyzing {week_label}...")
             
             try:
                 # Use combined map data (don't re-download)
-                print(f"  ðŸ“ Using combined map data and road graph for {week_label}...")
+                print(f"  📍 Using combined map data and road graph for {week_label}...")
                 
                 # Clear previous week's driven edges
                 self.processor.driven_edges.clear()
@@ -5203,7 +5222,7 @@ class MultiWeekBehaviorAnalyzer:
                 self.processor.road_graph = combined_road_graph
         
                 # Map matching using the combined graph (rebuild_graph=False)
-                print(f"    ðŸ—ºï¸  Map matching for {week_label}...")
+                print(f"    🗺️  Map matching for {week_label}...")
                 self.processor._perform_map_matching(week_df, build_graph_only=False, rebuild_graph=False)
                 
                 self.map_manager.road_graph = self.processor.road_graph
@@ -5230,13 +5249,13 @@ class MultiWeekBehaviorAnalyzer:
                 else:
                     route_geometry = None
                 
-                #print(f"  ðŸ” DEBUG: Captured route_geometry for {week_label}: {route_geometry is not None}")
+                #print(f"  🔍 DEBUG: Captured route_geometry for {week_label}: {route_geometry is not None}")
                 if route_geometry:
-                    print(f"  ðŸ” DEBUG: Geometry type: {type(route_geometry)}, length: {route_geometry.length}")
+                    print(f"  🔍 DEBUG: Geometry type: {type(route_geometry)}, length: {route_geometry.length}")
             
                 if route_geometry is not None:
                     self.map_manager.set_road_context(driven_edges, route_geometry)
-                    print(f"    âœ… Road context set for {week_label}")
+                    print(f"    ✅ Road context set for {week_label}")
     
                 # Coordinate comparison
                 original_coords = list(zip(week_df['lat'], week_df['lon']))
@@ -5314,10 +5333,10 @@ class MultiWeekBehaviorAnalyzer:
                     
                     if matched_edge is not None:
                         edge_speed = self.map_manager.get_speed_limit(matched_edge)
-                        print(f"Point {test_idx}: {original_coords[test_idx]} â†’ Edge speed: {edge_speed} km/h")
+                        print(f"Point {test_idx}: {original_coords[test_idx]} → Edge speed: {edge_speed} km/h")
                         print(f"Matched edge: {matched_edge}")
                     else:
-                        print(f"Point {test_idx}: {original_coords[test_idx]} â†’ No matched edge")
+                        print(f"Point {test_idx}: {original_coords[test_idx]} → No matched edge")
     
                 if route_geometry is not None:
                     # Create analyzer
@@ -5341,7 +5360,7 @@ class MultiWeekBehaviorAnalyzer:
                         }
                     }        
                 else:
-                    print(f"    âš ï¸  No route geometry created for {week_label}")
+                    print(f"    ⚠️  No route geometry created for {week_label}")
                     self.weekly_results[week_label] = {
                         'speed_analysis': {},
                         'acceleration_analysis': {},
@@ -5353,7 +5372,7 @@ class MultiWeekBehaviorAnalyzer:
                     }
                     
             except Exception as e:
-                print(f"    âŒ Failed to analyze {week_label}: {e}")
+                print(f"    ❌ Failed to analyze {week_label}: {e}")
                 import traceback
                 traceback.print_exc()
                 self.weekly_results[week_label] = {
@@ -5426,7 +5445,7 @@ class UnifiedBehaviorAnalyzer:
         Requires route geometry for accurate analysis
         """
         if hasattr(self, 'map_manager') and self.map_manager.map_data:
-            print("ðŸ” Analyzing PBF ID relationships...")
+            print("🔍 Analyzing PBF ID relationships...")
             #id_relationships = self.analyze_pbf_id_relationships()
             #self.results['pbf_id_analysis'] = id_relationships
 
@@ -5438,7 +5457,7 @@ class UnifiedBehaviorAnalyzer:
                             "Cannot perform analysis without route context.")
         
         # Debug info for road context
-        print(f"ðŸ”§ DEBUG INFO:")
+        print(f"🔧 DEBUG INFO:")
         print(f"  - GPS points: {len(self.df)}")
         print(f"  - Route geometry: {'Yes' if hasattr(self.map_manager, 'route_geometry') and self.map_manager.route_geometry else 'No'}")
         print(f"  - Driven roads: {len(getattr(self.map_manager, 'driven_road_ids', set()))}")
@@ -5449,7 +5468,7 @@ class UnifiedBehaviorAnalyzer:
         
         # Determine analysis type based on parallel processing capability
         analysis_type = "road-context enhanced" if self.enable_parallel else "road-context"
-        print(f"ðŸŽ¯ Running {analysis_type} behavior analysis...")
+        print(f"🎯 Running {analysis_type} behavior analysis...")
         
         # Speed limit calculation timing
         #print(" [[Edge Based Method]] Pre-calculating speed limits...")
@@ -5469,25 +5488,25 @@ class UnifiedBehaviorAnalyzer:
         #self.test_id_extraction()
             
         # Individual behavior analysis timing
-        print("  â€¢ Analyzing speeding violations...")
+        print("  • Analyzing speeding violations...")
         self._analyze_speeding_on_road()
 
-        print("  â€¢ Analyzing roundabout approaches...")
+        print("  • Analyzing roundabout approaches...")
         self._analyze_roundabouts_with_context()
         
 
         #self.build_road_feature_lookup_timed()
-        print("  â€¢ Analyzing stop signs...")
+        print("  • Analyzing stop signs...")
         self._analyze_stop_signs_with_context()
        
        
-        print("  â€¢ Analyzing school zones...")
+        print("  • Analyzing school zones...")
         self._analyze_school_zones_with_context()
 
-        print("\n  â€¢ Analyzing traffic lights...")
+        print("\n  • Analyzing traffic lights...")
         self._analyze_traffic_lights_with_context()
         
-        print("\n  â€¢ Analyzing harsh driving events...")
+        print("\n  • Analyzing harsh driving events...")
         self._analyze_harsh_events()
 
         
@@ -5541,7 +5560,7 @@ class UnifiedBehaviorAnalyzer:
         
         # Ensure speed_limit column exists
         if 'speed_limit' not in self.df.columns:
-            print("  âš ï¸  Speed limits not pre-calculated, using fallback...")
+            print("  ⚠️  Speed limits not pre-calculated, using fallback...")
             speed_limits = []
             for _, row in self.df.iterrows():
                 if 'road_matched_lat' in row and pd.notna(row['road_matched_lat']):
@@ -5558,7 +5577,7 @@ class UnifiedBehaviorAnalyzer:
         if not pd.api.types.is_datetime64_any_dtype(self.df['timestamp']):
             self.df['timestamp'] = pd.to_datetime(self.df['timestamp'])
         
-        print(f"  ðŸ“Š Analyzing {len(self.df)} GPS points across {len(self.df['speed_limit'].unique())} unique speed limits")
+        print(f"  📊 Analyzing {len(self.df)} GPS points across {len(self.df['speed_limit'].unique())} unique speed limits")
         
         # ========================================================================
         # STEP 1: CREATE GEOGRAPHIC SEGMENTS (Keep original logic)
@@ -5615,12 +5634,12 @@ class UnifiedBehaviorAnalyzer:
                 current_segment['duration_seconds'] = (current_segment['end_time'] - current_segment['start_time']).total_seconds()
                 geographic_segments.append(current_segment)
         
-        print(f"  ðŸ“ Created {len(geographic_segments)} geographic road segments")
+        print(f"  📍 Created {len(geographic_segments)} geographic road segments")
 
         # ========================================================================
         # STEP 1.5: FILTER OUT SINGLE-POINT SEGMENTS (NEW)
         # ========================================================================
-        print(f"  ðŸ” Filtering single-point segments...")
+        print(f"  🔍 Filtering single-point segments...")
         print(f"    Before filtering: {len(geographic_segments)} segments")
         
         # Filter out segments with only 1 GPS point
@@ -5644,7 +5663,7 @@ class UnifiedBehaviorAnalyzer:
         substantial_segments = [seg for seg in geographic_segments if seg['total_points'] > 3 and seg['duration_seconds'] > 10]
         
         if micro_segments:
-            print(f"  âš ï¸  Found {len(micro_segments)} micro-segments (â‰¤3 points or â‰¤10s) - keeping but will merge for analysis")
+            print(f"  ⚠️  Found {len(micro_segments)} micro-segments (≤3 points or ≤10s) - keeping but will merge for analysis")
         
         # ========================================================================
         # STEP 2: DETECT VIOLATION EPISODES WITHIN SEGMENTS
@@ -5653,7 +5672,7 @@ class UnifiedBehaviorAnalyzer:
         episode_id = 0
         last_episode_by_speed_limit = {}
         
-        print(f"  ðŸ” Detecting violation episodes across segments...")
+        print(f"  🔍 Detecting violation episodes across segments...")
         
         for segment in geographic_segments:
             current_episode = None
@@ -5734,7 +5753,7 @@ class UnifiedBehaviorAnalyzer:
                     violation_episodes.append(current_episode)
                 last_episode_by_speed_limit[segment_limit] = current_episode
         
-        print(f"  ðŸš¨ Detected {len(violation_episodes)} violation episodes")
+        print(f"  🚨 Detected {len(violation_episodes)} violation episodes")
         
         # ========================================================================
         # STEP 3: DEFINE SPEED ZONE CATEGORIES (6 static categories)
@@ -5771,7 +5790,7 @@ class UnifiedBehaviorAnalyzer:
                 segments_by_category[category] = []
             segments_by_category[category].append(segment)
         
-        print(f"  ðŸ“‹ Segments grouped into {len(segments_by_category)} speed zone categories:")
+        print(f"  📋 Segments grouped into {len(segments_by_category)} speed zone categories:")
         for category, segs in segments_by_category.items():
             total_points = sum(seg['total_points'] for seg in segs)
             total_duration = sum(seg['duration_seconds'] for seg in segs)
@@ -5787,7 +5806,7 @@ class UnifiedBehaviorAnalyzer:
                 episodes_by_category[category] = []
             episodes_by_category[category].append(episode)
         
-        print(f"  ðŸ“Š Violation episodes by speed zone category:")
+        print(f"  📊 Violation episodes by speed zone category:")
         for category, eps in episodes_by_category.items():
             print(f"    {category}: {len(eps)} episodes")
         
@@ -6019,13 +6038,13 @@ class UnifiedBehaviorAnalyzer:
         # Add episodes to results
         
         # Debug summary
-        print(f"  âœ… Speed zone analysis complete:")
+        print(f"  ✅ Speed zone analysis complete:")
         print(f"    Geographic segments: {len(geographic_segments)}")
         print(f"    Speed zone categories: {total_zones_encountered}")
         print(f"    Total violation episodes: {len(violation_episodes)}")
         print(f"    Overall compliance: {compliance_percentage:.1f}%")
         
-        print(f"  ðŸ“Š Final speed zones breakdown:")
+        print(f"  📊 Final speed zones breakdown:")
         for category, data in zone_analysis.items():
             if data['total_gps_points'] > 0:
                 print(f"    {category}: {data['segments_count']} segments, {data['violation_episodes']} violations, {data['compliance_percentage']:.1f}% compliance")
@@ -6049,7 +6068,7 @@ class UnifiedBehaviorAnalyzer:
         - Zone 1: 150-100m before roundabout (early anticipation)
         - Zone 2: 100-65m before roundabout (mid anticipation)  
         - Zone 3: 65-0m before roundabout (late anticipation)
-        - Entry: 0-15m (entry compliance â‰¤34 km/h)
+        - Entry: 0-15m (entry compliance ≤34 km/h)
         - Inside: Within roundabout geometry
         - Exit: First points after roundabout
         
@@ -6060,7 +6079,7 @@ class UnifiedBehaviorAnalyzer:
         - No Deceleration: No significant speed reduction detected
         """
         
-        print(f"    ðŸ” Analyzing roundabout approaches (ENHANCED METHOD)...")
+        print(f"    🔍 Analyzing roundabout approaches (ENHANCED METHOD)...")
         
         # ================================================================
         # STEP 0: Initialize results structure
@@ -6089,16 +6108,16 @@ class UnifiedBehaviorAnalyzer:
         # STEP 1: Validate prerequisites
         # ================================================================
         roundabouts = self.map_manager.map_data.get('roundabouts', [])
-        print(f"    ðŸ“Š Total roundabouts in map: {len(roundabouts)}")
+        print(f"    📊 Total roundabouts in map: {len(roundabouts)}")
         
         if not roundabouts:
-            print(f"    âŒ No roundabouts in map data")
+            print(f"    ❌ No roundabouts in map data")
             self.results['roundabouts'] = results
             return
         
         # Check route geometry
         if not hasattr(self.map_manager, 'route_geometry') or self.map_manager.route_geometry is None:
-            print(f"    âŒ No route geometry available")
+            print(f"    ❌ No route geometry available")
             self.results['roundabouts'] = results
             return
         
@@ -6107,7 +6126,7 @@ class UnifiedBehaviorAnalyzer:
         # Debug: Show route geometry range
         route_coords = list(route_geom.coords)
         route_lats = [c[1] for c in route_coords]
-        print(f"    ðŸ“ Route geometry: {len(route_coords)} points, lat range: {min(route_lats):.4f} to {max(route_lats):.4f}")
+        print(f"    📍 Route geometry: {len(route_coords)} points, lat range: {min(route_lats):.4f} to {max(route_lats):.4f}")
         
         # ================================================================
         # STEP 2: Detect GPS quality and available features
@@ -6128,8 +6147,8 @@ class UnifiedBehaviorAnalyzer:
         else:
             results['detection_mode'] = 'basic'
         
-        print(f"    ðŸŽ¯ Detection mode: {results['detection_mode']}")
-        print(f"    ðŸ“¡ GPS interval: {avg_interval:.1f}s {'(SPARSE)' if is_sparse_gps else '(OK)'}")
+        print(f"    🎯 Detection mode: {results['detection_mode']}")
+        print(f"    📡 GPS interval: {avg_interval:.1f}s {'(SPARSE)' if is_sparse_gps else '(OK)'}")
         
         # Adaptive thresholds based on GPS quality
         if is_sparse_gps:
@@ -6200,11 +6219,11 @@ class UnifiedBehaviorAnalyzer:
                         'distance_to_route': distance_to_route,
                         'route_position': route_position
                     })
-                    print(f"    âœ… Roundabout {roundabout.get('id', 'unknown')}: {distance_to_route:.1f}m from route")
+                    print(f"    ✅ Roundabout {roundabout.get('id', 'unknown')}: {distance_to_route:.1f}m from route")
             except Exception as e:
                 continue
         
-        print(f"    âœ… Found {len(relevant_roundabouts)} roundabouts within {MAX_DISTANCE_TO_ROUTE}m of route")
+        print(f"    ✅ Found {len(relevant_roundabouts)} roundabouts within {MAX_DISTANCE_TO_ROUTE}m of route")
         # ================================================================
         # STEP 5: Group roundabouts by proximity (same physical location)
         # ================================================================
@@ -6214,7 +6233,7 @@ class UnifiedBehaviorAnalyzer:
         )
         
         results['total_roundabouts'] = len(grouped_roundabouts)
-        print(f"    ðŸ”„ Grouped into {len(grouped_roundabouts)} physical roundabout locations")
+        print(f"    🔄 Grouped into {len(grouped_roundabouts)} physical roundabout locations")
         
         # ================================================================
         # STEP 6: Analyze each roundabout group
@@ -6274,7 +6293,7 @@ class UnifiedBehaviorAnalyzer:
             results['entry_compliance_percentage'] = None
         
         # Print summary
-        print(f"\n    ðŸ“Š Roundabout Analysis Complete:")
+        print(f"\n    📊 Roundabout Analysis Complete:")
         print(f"       Total roundabouts: {results['total_roundabouts']}")
         print(f"       Valid approaches: {results['total_approaches']}")
         print(f"       Anticipation - Good: {results['anticipation_stats']['good']}, "
@@ -6304,7 +6323,7 @@ class UnifiedBehaviorAnalyzer:
         group_lat = sum(rb['lat'] for rb in roundabout_group) / len(roundabout_group)
         group_lon = sum(rb['lon'] for rb in roundabout_group) / len(roundabout_group)
         
-        print(f"\n    ðŸ“ Roundabout {group_idx + 1}: ({group_lat:.6f}, {group_lon:.6f})")
+        print(f"\n    📍 Roundabout {group_idx + 1}: ({group_lat:.6f}, {group_lon:.6f})")
         
         # Project roundabout point
         rb_point = Point(group_lon, group_lat)
@@ -6313,7 +6332,7 @@ class UnifiedBehaviorAnalyzer:
             roundabout_route_position = route_proj.project(rb_point_proj)
             distance_to_route = route_proj.distance(rb_point_proj)
         except Exception as e:
-            print(f"       âŒ Projection failed: {e}")
+            print(f"       ❌ Projection failed: {e}")
             return None
         
         # ================================================================
@@ -6362,7 +6381,7 @@ class UnifiedBehaviorAnalyzer:
         print(f"       Found {len(nearby_points)} GPS points within {approach_zone_radius}m")
         
         if len(nearby_points) < min_approach_points:
-            print(f"       âŒ Insufficient data ({len(nearby_points)} < {min_approach_points} points)")
+            print(f"       ❌ Insufficient data ({len(nearby_points)} < {min_approach_points} points)")
             return None
         
         # Sort by timestamp to determine direction
@@ -6371,8 +6390,8 @@ class UnifiedBehaviorAnalyzer:
         # ================================================================
         # Determine approach direction (approaching vs leaving)
         # ================================================================
-        # If signed_distance decreases over time â†’ approaching
-        # If signed_distance increases over time â†’ leaving
+        # If signed_distance decreases over time → approaching
+        # If signed_distance increases over time → leaving
         
         if len(nearby_points) >= 2:
             first_dist = nearby_points[0]['signed_distance']
@@ -6403,7 +6422,7 @@ class UnifiedBehaviorAnalyzer:
         
         # Use geometry-based entry/exit if available
         if geometry_result['entry_point'] or geometry_result['inside_points']:
-            print(f"       âœ… Geometry-based detection: Entry={geometry_result['entry_speed']}, "
+            print(f"       ✅ Geometry-based detection: Entry={geometry_result['entry_speed']}, "
                   f"Inside={len(geometry_result['inside_points'])} points, Exit={geometry_result['exit_speed']}")
             
             # Entry speed from geometry detection
@@ -6413,7 +6432,7 @@ class UnifiedBehaviorAnalyzer:
             time_inside = geometry_result['time_inside_seconds']
             stopped_inside = geometry_result['stopped_inside']
         else:
-            print(f"       âš ï¸ Geometry detection failed, using distance-based fallback")
+            print(f"       ⚠️ Geometry detection failed, using distance-based fallback")
             entry_speed_geo = None
             exit_speed_geo = None
             inside_points = []
@@ -6430,7 +6449,7 @@ class UnifiedBehaviorAnalyzer:
         print(f"       Distance-based: Approach={len(approach_points)}, Entry zone={len(entry_points)}, Exit={len(exit_points)}")  
         # If we're leaving the roundabout, we can still analyze approach if we have approach points
         if not approach_points and not is_approaching:
-            print(f"       âŒ No approach points (driver leaving roundabout)")
+            print(f"       ❌ No approach points (driver leaving roundabout)")
 
         
         # ================================================================
@@ -6570,12 +6589,12 @@ class UnifiedBehaviorAnalyzer:
         }
 
         
-        print(f"       âœ… Anticipation: {anticipation_result['category']} "
+        print(f"       ✅ Anticipation: {anticipation_result['category']} "
               f"(drop: {anticipation_result['total_speed_drop']:.1f} km/h)" 
               if anticipation_result['total_speed_drop'] else 
-              f"       âœ… Anticipation: {anticipation_result['category']}")
-        print(f"       âœ… Entry: {entry_speed:.0f} km/h â†’ {'Compliant' if entry_compliant else 'Non-compliant'}" 
-              if entry_speed else "       âš ï¸ Entry speed: Unknown")
+              f"       ✅ Anticipation: {anticipation_result['category']}")
+        print(f"       ✅ Entry: {entry_speed:.0f} km/h → {'Compliant' if entry_compliant else 'Non-compliant'}" 
+              if entry_speed else "       ⚠️ Entry speed: Unknown")
         
         return result
 
@@ -6779,10 +6798,10 @@ class UnifiedBehaviorAnalyzer:
             centroid_lat = sum(rb['lat'] for rb in roundabout_group) / len(roundabout_group)
             centroid_lon = sum(rb['lon'] for rb in roundabout_group) / len(roundabout_group)
             
-            # Create approximate circular polygon (15m radius â‰ˆ 0.00015 degrees)
+            # Create approximate circular polygon (15m radius ≈ 0.00015 degrees)
             center = Point(centroid_lon, centroid_lat)
             roundabout_polygon = center.buffer(0.00015)  # ~15m radius
-            print(f"       âš ï¸ Using circular approximation (no geometry data)")
+            print(f"       ⚠️ Using circular approximation (no geometry data)")
         
         if roundabout_polygon is None:
             return result
@@ -6923,8 +6942,8 @@ class UnifiedBehaviorAnalyzer:
         if route_geometry is None:
             route_geometry = getattr(self.map_manager, 'route_geometry', None)
         
-        print(f"    ðŸ›‘ Analyzing stop sign compliance (ENHANCED METHOD)...")
-        print(f"    ðŸ“Š Total stop signs in map: {len(stop_signs)}")
+        print(f"    🛑 Analyzing stop sign compliance (ENHANCED METHOD)...")
+        print(f"    📊 Total stop signs in map: {len(stop_signs)}")
         
         # ================================================================
         # STEP 1: Initialize results structure
@@ -6944,7 +6963,7 @@ class UnifiedBehaviorAnalyzer:
         }
         
         if not stop_signs:
-            print(f"    âŒ No stop signs in map data")
+            print(f"    ❌ No stop signs in map data")
             self.results['stop_signs'] = results
             return
         
@@ -6967,8 +6986,8 @@ class UnifiedBehaviorAnalyzer:
         else:
             results['detection_mode'] = 'basic'
         
-        print(f"    ðŸŽ¯ Detection mode: {results['detection_mode']}")
-        print(f"    ðŸ“¡ GPS interval: {avg_interval:.1f}s {'(SPARSE)' if is_sparse_gps else '(OK)'}")
+        print(f"    🎯 Detection mode: {results['detection_mode']}")
+        print(f"    📡 GPS interval: {avg_interval:.1f}s {'(SPARSE)' if is_sparse_gps else '(OK)'}")
         
         # ================================================================
         # STEP 3: Extract driven node IDs from edges (for OSM ID filtering)
@@ -6981,7 +7000,7 @@ class UnifiedBehaviorAnalyzer:
                 driven_node_ids.add(edge[0])  # Start node
                 driven_node_ids.add(edge[1])  # End node
         
-        print(f"    ðŸ“Š Driven edges: {len(driven_edges)}, Driven nodes: {len(driven_node_ids)}")
+        print(f"    📊 Driven edges: {len(driven_edges)}, Driven nodes: {len(driven_node_ids)}")
         
         # ================================================================
         # STEP 4: Filter stop signs on driven route (OSM ID MATCHING)
@@ -7007,14 +7026,14 @@ class UnifiedBehaviorAnalyzer:
                         'match_method': 'osmid'
                     })
         
-        print(f"    âœ… Found {len(relevant_stop_signs_osmid)} stop signs by OSM ID match")
+        print(f"    ✅ Found {len(relevant_stop_signs_osmid)} stop signs by OSM ID match")
         
         # FALLBACK: If OSM ID matching finds very few, add distance-based
         # (Only if we have route geometry and found less than expected)
         relevant_stop_signs = relevant_stop_signs_osmid.copy()
         
         if len(relevant_stop_signs) < 3 and route_geometry is not None:
-            print(f"    âš ï¸ Few OSM matches, checking distance-based fallback...")
+            print(f"    ⚠️ Few OSM matches, checking distance-based fallback...")
             
             from pyproj import Transformer
             from shapely.ops import transform
@@ -7070,12 +7089,12 @@ class UnifiedBehaviorAnalyzer:
                     continue
             
             distance_matches = len(relevant_stop_signs) - len(relevant_stop_signs_osmid)
-            print(f"    âœ… Added {distance_matches} stop signs by distance fallback (â‰¤15m)")
+            print(f"    ✅ Added {distance_matches} stop signs by distance fallback (≤15m)")
         
-        print(f"    âœ… Total stop signs on route: {len(relevant_stop_signs)}")
+        print(f"    ✅ Total stop signs on route: {len(relevant_stop_signs)}")
         
         if not relevant_stop_signs:
-            print(f"    âŒ No stop signs found on driven route")
+            print(f"    ❌ No stop signs found on driven route")
             self.results['stop_signs'] = results
             return
         
@@ -7107,7 +7126,7 @@ class UnifiedBehaviorAnalyzer:
             stop_id = stop_info['id']
             match_method = stop_info.get('match_method', 'unknown')
             
-            print(f"\n    ðŸ›‘ Stop sign {stop_id} ({match_method}):")
+            print(f"\n    🛑 Stop sign {stop_id} ({match_method}):")
             
             # Find GPS points near this stop sign
             approach_result = self._analyze_single_stop_approach(
@@ -7155,7 +7174,7 @@ class UnifiedBehaviorAnalyzer:
             results['compliance_percentage'] = (results['compliance']['stop_ok'] / total_evaluated) * 100
         
         # Print summary
-        print(f"\n    ðŸ“Š Stop Sign Analysis Complete:")
+        print(f"\n    📊 Stop Sign Analysis Complete:")
         print(f"       Total stop signs: {results['total_stop_signs']}")
         print(f"       Valid approaches: {results['total_approaches']}")
         print(f"       STOP_OK: {results['compliance']['stop_ok']}, "
@@ -7207,7 +7226,7 @@ class UnifiedBehaviorAnalyzer:
         print(f"       Found {len(nearby_points)} GPS points within {APPROACH_RADIUS}m")
         
         if len(nearby_points) < 1:
-            print(f"       âŒ No GPS points near stop sign")
+            print(f"       ❌ No GPS points near stop sign")
             return None
         
         # Sort by timestamp
@@ -7241,7 +7260,7 @@ class UnifiedBehaviorAnalyzer:
             confidence = 95
             detection_layer = 'layer1_io_movement'
             evidence.append('io_movement=0 (stationary)')
-            print(f"       âœ… Layer 1: io_movement=0 detected â†’ STOP_OK (95%)")
+            print(f"       ✅ Layer 1: io_movement=0 detected → STOP_OK (95%)")
         
         # Check speed = 0
         elif min_speed is not None and min_speed < 2:
@@ -7249,7 +7268,7 @@ class UnifiedBehaviorAnalyzer:
             confidence = 92
             detection_layer = 'layer1_speed_zero'
             evidence.append(f'speed={min_speed:.0f} km/h (near zero)')
-            print(f"       âœ… Layer 1: Speed near zero ({min_speed:.0f} km/h) â†’ STOP_OK (92%)")
+            print(f"       ✅ Layer 1: Speed near zero ({min_speed:.0f} km/h) → STOP_OK (92%)")
         
         # Check harsh brake event
         harsh_brake = any(p.get('io_green_driving_type') == 2 for p in nearby_points)
@@ -7259,7 +7278,7 @@ class UnifiedBehaviorAnalyzer:
                 confidence = 88
                 detection_layer = 'layer1_harsh_brake'
                 evidence.append('harsh brake + low speed')
-                print(f"       âœ… Layer 1: Harsh brake + low speed â†’ STOP_OK (88%)")
+                print(f"       ✅ Layer 1: Harsh brake + low speed → STOP_OK (88%)")
         
         # Check maintained high speed (definite violation)
         if compliance is None and min_speed is not None and min_speed > 25:
@@ -7267,7 +7286,7 @@ class UnifiedBehaviorAnalyzer:
             confidence = 90
             detection_layer = 'layer1_high_speed'
             evidence.append(f'min_speed={min_speed:.0f} km/h (too high)')
-            print(f"       âŒ Layer 1: High speed maintained ({min_speed:.0f} km/h) â†’ STOP_KO (90%)")
+            print(f"       ❌ Layer 1: High speed maintained ({min_speed:.0f} km/h) → STOP_KO (90%)")
         
         # ================================================================
         # LAYER 2: Strong Indicators (70-85% confidence)
@@ -7280,7 +7299,7 @@ class UnifiedBehaviorAnalyzer:
                 confidence = 80
                 detection_layer = 'layer2_low_speed'
                 evidence.append(f'min_speed={min_speed:.0f} km/h (very low)')
-                print(f"       âœ… Layer 2: Very low speed ({min_speed:.0f} km/h) â†’ STOP_OK (80%)")
+                print(f"       ✅ Layer 2: Very low speed ({min_speed:.0f} km/h) → STOP_OK (80%)")
             
             # Multiple points clustered (driver slowed significantly)
             elif len(nearby_points) >= 3 and min_speed is not None and min_speed < 15:
@@ -7293,7 +7312,7 @@ class UnifiedBehaviorAnalyzer:
                     confidence = 75
                     detection_layer = 'layer2_clustering'
                     evidence.append(f'clustered points + low speed')
-                    print(f"       âœ… Layer 2: Clustered points + low speed â†’ STOP_OK (75%)")
+                    print(f"       ✅ Layer 2: Clustered points + low speed → STOP_OK (75%)")
             
             # Engine load drop (if available)
             if compliance is None and has_engine_data:
@@ -7305,7 +7324,7 @@ class UnifiedBehaviorAnalyzer:
                         confidence = 72
                         detection_layer = 'layer2_engine_load'
                         evidence.append(f'engine load drop: {load_drop:.0f}%')
-                        print(f"       âœ… Layer 2: Engine load drop ({load_drop:.0f}%) â†’ STOP_OK (72%)")
+                        print(f"       ✅ Layer 2: Engine load drop ({load_drop:.0f}%) → STOP_OK (72%)")
             
             # Moderate speed maintained (likely violation)
             if compliance is None and min_speed is not None and min_speed > 15:
@@ -7313,14 +7332,14 @@ class UnifiedBehaviorAnalyzer:
                 confidence = 75
                 detection_layer = 'layer2_moderate_speed'
                 evidence.append(f'min_speed={min_speed:.0f} km/h (too fast)')
-                print(f"       âŒ Layer 2: Moderate speed ({min_speed:.0f} km/h) â†’ STOP_KO (75%)")
+                print(f"       ❌ Layer 2: Moderate speed ({min_speed:.0f} km/h) → STOP_KO (75%)")
         
         # ================================================================
         # LAYER 3: Segment Analysis (50-70% confidence)
         # ================================================================
         
         if compliance is None and len(nearby_points) >= 2:
-            # Check for V-shaped speed pattern (approach â†’ slow â†’ exit)
+            # Check for V-shaped speed pattern (approach → slow → exit)
             if len(speeds) >= 3:
                 first_speed = speeds[0]
                 last_speed = speeds[-1]
@@ -7331,8 +7350,8 @@ class UnifiedBehaviorAnalyzer:
                         compliance = 'STOP_OK'
                         confidence = 65
                         detection_layer = 'layer3_v_pattern'
-                        evidence.append(f'V-pattern: {first_speed:.0f}â†’{min_speed:.0f}â†’{last_speed:.0f}')
-                        print(f"       âœ… Layer 3: V-shaped pattern â†’ STOP_OK (65%)")
+                        evidence.append(f'V-pattern: {first_speed:.0f}→{min_speed:.0f}→{last_speed:.0f}')
+                        print(f"       ✅ Layer 3: V-shaped pattern → STOP_OK (65%)")
             
             # Sparse GPS with low-ish speed - give benefit of doubt
             if compliance is None and is_sparse_gps and min_speed is not None and min_speed < 20:
@@ -7340,7 +7359,7 @@ class UnifiedBehaviorAnalyzer:
                 confidence = 60
                 detection_layer = 'layer3_sparse_benefit'
                 evidence.append(f'sparse GPS + moderate speed ({min_speed:.0f} km/h)')
-                print(f"       âš ï¸ Layer 3: Sparse GPS, giving benefit of doubt â†’ STOP_OK (60%)")
+                print(f"       ⚠️ Layer 3: Sparse GPS, giving benefit of doubt → STOP_OK (60%)")
         
         # ================================================================
         # FALLBACK: Uncertain
@@ -7351,7 +7370,7 @@ class UnifiedBehaviorAnalyzer:
             confidence = 50
             detection_layer = 'fallback'
             evidence.append('insufficient data for determination')
-            print(f"       â“ Fallback: Insufficient evidence â†’ UNCERTAIN (50%)")
+            print(f"       ❓ Fallback: Insufficient evidence → UNCERTAIN (50%)")
         
         # ================================================================
         # BUILD RESULT
@@ -7673,7 +7692,7 @@ class UnifiedBehaviorAnalyzer:
                 result['conclusive'] = True
                 result['result'] = 'STOP_OK'
                 result['confidence'] = 65
-                result['reason'] = f'Speed pattern suggests stop (entry {entry_speed:.0f} â†’ {closest_point["speed_kmh"]:.0f} â†’ exit {exit_speed:.0f} km/h)'
+                result['reason'] = f'Speed pattern suggests stop (entry {entry_speed:.0f} → {closest_point["speed_kmh"]:.0f} → exit {exit_speed:.0f} km/h)'
                 return result
         
         # Check 2: Calculate expected distance vs actual distance
@@ -7821,8 +7840,8 @@ class UnifiedBehaviorAnalyzer:
         """
         schools = self.map_manager.map_data['schools']
         
-        print(f"    ðŸ” Analyzing school zone passages...")
-        print(f"    ðŸ” Total schools in area: {len(schools)}")
+        print(f"    🔍 Analyzing school zone passages...")
+        print(f"    🔍 Total schools in area: {len(schools)}")
         
         if not hasattr(self.map_manager, 'route_geometry') or self.map_manager.route_geometry is None:
             raise ValueError("Route geometry is required for accurate school zone analysis.")
@@ -7848,16 +7867,16 @@ class UnifiedBehaviorAnalyzer:
                     })
                     
             except Exception as e:
-                print(f"    âš ï¸ Projection failed for school: {e}")
+                print(f"    ⚠️ Projection failed for school: {e}")
                 continue
         
-        print(f"    âœ… Found {len(relevant_schools)} schools near route")
+        print(f"    ✅ Found {len(relevant_schools)} schools near route")
         
         # STEP 2: Group schools by proximity (NEW - eliminates duplicates)
         school_objects = [rs['school'] for rs in relevant_schools]
         school_groups = self._group_schools_by_proximity(school_objects, max_distance=100)
         
-        print(f"    ðŸ”„ Grouped {len(relevant_schools)} schools into {len(school_groups)} school zones")
+        print(f"    🔄 Grouped {len(relevant_schools)} schools into {len(school_groups)} school zones")
         
         # STEP 3: Analyze passages for each school group (not individual schools)
         all_school_passages = []
@@ -7871,7 +7890,7 @@ class UnifiedBehaviorAnalyzer:
             group_names = [school.get('name', 'Unknown') for school in school_group if school.get('name')]
             group_name = max(group_names, key=len) if group_names else f"School Zone {group_idx + 1}"
             
-            print(f"    ðŸ“ Analyzing school zone '{group_name}' ({len(school_group)} buildings)")
+            print(f"    📍 Analyzing school zone '{group_name}' ({len(school_group)} buildings)")
             
             # Find GPS points within 200m of group centroid (French standard)
             zone_points = []
@@ -7945,7 +7964,7 @@ class UnifiedBehaviorAnalyzer:
                 all_school_passages.append(passage_record)
             
             if episodes:
-                print(f"      ðŸ“Š {len(episodes)} passage episodes detected")
+                print(f"      📊 {len(episodes)} passage episodes detected")
         
         # Build results
         total_passages = len(all_school_passages)
@@ -7964,10 +7983,10 @@ class UnifiedBehaviorAnalyzer:
             'passages': all_school_passages
         }
         
-        print(f"    âœ… School zone analysis complete:")
-        print(f"        ðŸ“Š {total_passages} passages through {unique_zones} school zones")
-        print(f"        ðŸš¨ {school_violations} school zone violations")
-        print(f"        ðŸ“ Using 200m zone radius, 100m grouping distance")
+        print(f"    ✅ School zone analysis complete:")
+        print(f"        📊 {total_passages} passages through {unique_zones} school zones")
+        print(f"        🚨 {school_violations} school zone violations")
+        print(f"        📏 Using 200m zone radius, 100m grouping distance")
     
         # ========================================================================
         # UTILITY METHODS - Same for all analyzers
@@ -8019,8 +8038,8 @@ class UnifiedBehaviorAnalyzer:
         if traffic_signals is None:
             traffic_signals = self.map_manager.map_data.get('traffic_lights', [])
         
-        print(f"    ðŸš¦ Analyzing traffic light compliance...")
-        print(f"    ðŸ“Š Total traffic signals in map: {len(traffic_signals)}")
+        print(f"    🚦 Analyzing traffic light compliance...")
+        print(f"    📊 Total traffic signals in map: {len(traffic_signals)}")
         
         # Initialize results
         results = {
@@ -8039,7 +8058,7 @@ class UnifiedBehaviorAnalyzer:
         }
         
         if not traffic_signals:
-            print(f"    âŒ No traffic signals in map data")
+            print(f"    ❌ No traffic signals in map data")
             self.results['traffic_lights'] = results
             return
         
@@ -8051,8 +8070,8 @@ class UnifiedBehaviorAnalyzer:
         if has_movement_status:
             results['detection_mode'] = 'enhanced'
         
-        print(f"    ðŸŽ¯ Detection mode: {results['detection_mode']}")
-        print(f"    ðŸ“¡ GPS interval: {avg_interval:.1f}s {'(SPARSE)' if is_sparse_gps else '(OK)'}")
+        print(f"    🎯 Detection mode: {results['detection_mode']}")
+        print(f"    📡 GPS interval: {avg_interval:.1f}s {'(SPARSE)' if is_sparse_gps else '(OK)'}")
         
         # ================================================================
         # USE EXISTING FILTERING METHOD
@@ -8074,10 +8093,10 @@ class UnifiedBehaviorAnalyzer:
                 'match_method': 'osmid'
             })
         
-        print(f"    âœ… Found {len(relevant_signals)} traffic signals on driven route")
+        print(f"    ✅ Found {len(relevant_signals)} traffic signals on driven route")
         
         if not relevant_signals:
-            print(f"    âŒ No traffic signals found on driven route")
+            print(f"    ❌ No traffic signals found on driven route")
             self.results['traffic_lights'] = results
             return
         
@@ -8147,7 +8166,7 @@ class UnifiedBehaviorAnalyzer:
         if total_evaluated > 0:
             results['stop_percentage'] = ((results['compliance']['stopped'] + results['compliance']['slowed']) / total_evaluated) * 100
         
-        print(f"\n    ðŸ“Š Traffic Light Analysis Complete:")
+        print(f"\n    📊 Traffic Light Analysis Complete:")
         print(f"       Total signals on route: {results['total_traffic_signals']}")
         print(f"       Approaches analyzed: {results['total_approaches']}")
         print(f"       Stopped: {results['compliance']['stopped']}, "
@@ -8185,33 +8204,33 @@ class UnifiedBehaviorAnalyzer:
             behavior = 'stopped'
             confidence = 95
             evidence.append('io_movement=0 (stationary)')
-            print(f"       âœ… STOPPED: io_movement=0 detected (95%)")
+            print(f"       ✅ STOPPED: io_movement=0 detected (95%)")
         
         elif min_speed is not None and min_speed < 3:
             behavior = 'stopped'
             confidence = 90
             evidence.append(f'speed={min_speed:.0f} km/h (near zero)')
-            print(f"       âœ… STOPPED: Speed near zero ({min_speed:.0f} km/h) (90%)")
+            print(f"       ✅ STOPPED: Speed near zero ({min_speed:.0f} km/h) (90%)")
         
         # SLOWED: Significant slowdown
         elif min_speed is not None and min_speed < 15:
             behavior = 'slowed'
             confidence = 75
             evidence.append(f'min_speed={min_speed:.0f} km/h (slowed significantly)')
-            print(f"       ðŸŸ¡ SLOWED: Low speed ({min_speed:.0f} km/h) (75%)")
+            print(f"       🟡 SLOWED: Low speed ({min_speed:.0f} km/h) (75%)")
         
         # PASSED_THROUGH: Maintained speed (likely green light)
         elif min_speed is not None and min_speed >= 15:
             behavior = 'passed_through'
             confidence = 70
             evidence.append(f'min_speed={min_speed:.0f} km/h (maintained speed - likely green)')
-            print(f"       ðŸŸ¢ PASSED THROUGH: Maintained speed ({min_speed:.0f} km/h) - likely green light (70%)")
+            print(f"       🟢 PASSED THROUGH: Maintained speed ({min_speed:.0f} km/h) - likely green light (70%)")
         
         else:
             behavior = 'uncertain'
             confidence = 50
             evidence.append('insufficient data')
-            print(f"       â“ UNCERTAIN: Insufficient data (50%)")
+            print(f"       ❓ UNCERTAIN: Insufficient data (50%)")
         
         # Calculate dwell time if stopped
         dwell_time = None
@@ -8254,7 +8273,7 @@ class UnifiedBehaviorAnalyzer:
         if df is None:
             df = self.df
         
-        print(f"    âš ï¸ Analyzing harsh driving events...")
+        print(f"    ⚠️ Analyzing harsh driving events...")
         
         # ================================================================
         # STEP 1: Initialize results
@@ -8300,12 +8319,12 @@ class UnifiedBehaviorAnalyzer:
         
         if has_io_green_driving:
             results['detection_method'] = 'device_io'
-            print(f"    ðŸŽ¯ Using io_green_driving_type (device-reported events)")
+            print(f"    🎯 Using io_green_driving_type (device-reported events)")
         elif has_speed and has_time_diff:
             results['detection_method'] = 'calculated'
-            print(f"    ðŸŽ¯ Using speed-based calculations")
+            print(f"    🎯 Using speed-based calculations")
         else:
-            print(f"    âŒ Insufficient data for harsh event detection")
+            print(f"    ❌ Insufficient data for harsh event detection")
             self.results['harsh_events'] = results
             return
         
@@ -8316,7 +8335,7 @@ class UnifiedBehaviorAnalyzer:
             HARSH_BRAKE_THRESHOLD = 2.5    # More lenient for sparse GPS
             HARSH_ACCEL_THRESHOLD = 2.0
             SHARP_TURN_THRESHOLD = 2.0
-            print(f"    âš ï¸ Sparse GPS ({avg_interval:.1f}s) - using adjusted thresholds")
+            print(f"    ⚠️ Sparse GPS ({avg_interval:.1f}s) - using adjusted thresholds")
         else:
             HARSH_BRAKE_THRESHOLD = 3.9    # 0.4g standard
             HARSH_ACCEL_THRESHOLD = 3.4    # 0.35g standard
@@ -8435,7 +8454,7 @@ class UnifiedBehaviorAnalyzer:
                 # Calculate angular velocity (degrees per second)
                 df_calc['angular_velocity'] = df_calc['heading_change'] / df_calc['time_diff_safe']
                 
-                # Calculate lateral acceleration: a = v * Ï‰ (in radians)
+                # Calculate lateral acceleration: a = v * ω (in radians)
                 df_calc['lateral_accel_ms2'] = (
                     df_calc['speed_ms'] * 
                     (df_calc['angular_velocity'] * 3.14159 / 180)
@@ -8488,7 +8507,7 @@ class UnifiedBehaviorAnalyzer:
         results['severity_summary'] = self._categorize_harsh_event_severity(results)
         
         # Print summary
-        print(f"\n    ðŸ“Š Harsh Events Analysis Complete:")
+        print(f"\n    📊 Harsh Events Analysis Complete:")
         print(f"       Detection method: {results['detection_method']}")
         print(f"       Total harsh events: {results['total_harsh_events']}")
         print(f"       - Harsh braking: {results['harsh_braking']['count']}")
@@ -8556,7 +8575,7 @@ class UnifiedBehaviorAnalyzer:
         """
         
         print("=" * 70)
-        print("ðŸ” DEBUG: Traffic Lights and Harsh Events Detection")
+        print("🔍 DEBUG: Traffic Lights and Harsh Events Detection")
         print("=" * 70)
         
         # Use analyzer's dataframe if not provided
@@ -8564,10 +8583,10 @@ class UnifiedBehaviorAnalyzer:
             df = analyzer.df if hasattr(analyzer, 'df') else None
         
         if df is None:
-            print("âŒ ERROR: No DataFrame available")
+            print("❌ ERROR: No DataFrame available")
             return
         
-        print(f"\nðŸ“Š DataFrame Info:")
+        print(f"\n📊 DataFrame Info:")
         print(f"   Total GPS points: {len(df)}")
         print(f"   Columns: {list(df.columns)}")
         
@@ -8575,12 +8594,12 @@ class UnifiedBehaviorAnalyzer:
         # PART 1: DEBUG TRAFFIC LIGHTS
         # ========================================================================
         print("\n" + "=" * 70)
-        print("ðŸš¦ PART 1: TRAFFIC LIGHTS DEBUG")
+        print("🚦 PART 1: TRAFFIC LIGHTS DEBUG")
         print("=" * 70)
         
         # Check 1: Traffic lights in map_data
         traffic_lights = map_manager.map_data.get('traffic_lights', [])
-        print(f"\n1ï¸âƒ£ Traffic lights in map_data: {len(traffic_lights)}")
+        print(f"\n1️⃣ Traffic lights in map_data: {len(traffic_lights)}")
         
         if traffic_lights:
             print(f"   Sample traffic light structure:")
@@ -8590,17 +8609,17 @@ class UnifiedBehaviorAnalyzer:
             
             # Check if osmid exists
             has_osmid = 'osmid' in sample
-            print(f"\n   âœ… Has 'osmid' field: {has_osmid}")
+            print(f"\n   ✅ Has 'osmid' field: {has_osmid}")
             if not has_osmid:
-                print("   âš ï¸  WARNING: Traffic lights missing 'osmid' field!")
-                print("   âš ï¸  Add 'osmid': n.id to traffic light creation in _MasterCacheHandler")
+                print("   ⚠️  WARNING: Traffic lights missing 'osmid' field!")
+                print("   ⚠️  Add 'osmid': n.id to traffic light creation in _MasterCacheHandler")
         else:
-            print("   âŒ No traffic lights found in map_data!")
+            print("   ❌ No traffic lights found in map_data!")
             print("   Check: map_manager.map_data['traffic_lights']")
         
         # Check 2: Driven road IDs
         driven_road_ids = getattr(map_manager, 'driven_road_ids', set())
-        print(f"\n2ï¸âƒ£ Driven road IDs: {len(driven_road_ids)}")
+        print(f"\n2️⃣ Driven road IDs: {len(driven_road_ids)}")
         
         if driven_road_ids:
             sample_edges = list(driven_road_ids)[:3]
@@ -8615,10 +8634,10 @@ class UnifiedBehaviorAnalyzer:
             print(f"   Extracted node IDs: {len(driven_node_ids)}")
             print(f"   Sample node IDs: {list(driven_node_ids)[:5]}")
         else:
-            print("   âŒ No driven road IDs found!")
+            print("   ❌ No driven road IDs found!")
         
         # Check 3: Filter traffic lights using existing method
-        print(f"\n3ï¸âƒ£ Filtering traffic lights on driven route...")
+        print(f"\n3️⃣ Filtering traffic lights on driven route...")
         
         if hasattr(map_manager, 'get_driven_road_linked_features'):
             try:
@@ -8626,19 +8645,19 @@ class UnifiedBehaviorAnalyzer:
                     traffic_lights, 
                     feature_type="traffic_lights"
                 )
-                print(f"   âœ… Filtered traffic lights: {len(filtered_lights)}")
+                print(f"   ✅ Filtered traffic lights: {len(filtered_lights)}")
                 
                 if filtered_lights:
                     print(f"   Sample filtered light:")
                     for key, value in filtered_lights[0].items():
                         print(f"      {key}: {value}")
             except Exception as e:
-                print(f"   âŒ Error filtering: {e}")
+                print(f"   ❌ Error filtering: {e}")
         else:
-            print("   âŒ get_driven_road_linked_features() method not found!")
+            print("   ❌ get_driven_road_linked_features() method not found!")
         
         # Check 4: GPS points near traffic lights
-        print(f"\n4ï¸âƒ£ Checking GPS coverage near traffic lights...")
+        print(f"\n4️⃣ Checking GPS coverage near traffic lights...")
         
         from geopy.distance import geodesic
         
@@ -8668,35 +8687,35 @@ class UnifiedBehaviorAnalyzer:
         print(f"   Traffic lights without nearby GPS points: {lights_without_gps}/10")
         
         # Check 5: Test traffic light analysis
-        print(f"\n5ï¸âƒ£ Testing traffic light analysis...")
+        print(f"\n5️⃣ Testing traffic light analysis...")
         
         if hasattr(analyzer, '_analyze_traffic_lights_with_context'):
             try:
                 analyzer._analyze_traffic_lights_with_context()
                 
                 results = analyzer.results.get('traffic_lights', {})
-                print(f"   âœ… Analysis completed!")
+                print(f"   ✅ Analysis completed!")
                 print(f"   Results:")
                 print(f"      Total signals: {results.get('total_traffic_signals', 0)}")
                 print(f"      Approaches analyzed: {results.get('total_approaches', 0)}")
                 print(f"      Compliance: {results.get('compliance', {})}")
                 print(f"      Stop percentage: {results.get('stop_percentage', 'N/A')}")
             except Exception as e:
-                print(f"   âŒ Analysis failed: {e}")
+                print(f"   ❌ Analysis failed: {e}")
                 import traceback
                 traceback.print_exc()
         else:
-            print("   âŒ _analyze_traffic_lights_with_context() method not found!")
+            print("   ❌ _analyze_traffic_lights_with_context() method not found!")
         
         # ========================================================================
         # PART 2: DEBUG HARSH EVENTS
         # ========================================================================
         print("\n" + "=" * 70)
-        print("âš ï¸  PART 2: HARSH EVENTS DEBUG")
+        print("⚠️  PART 2: HARSH EVENTS DEBUG")
         print("=" * 70)
         
         # Check 1: Required columns
-        print(f"\n1ï¸âƒ£ Checking required columns...")
+        print(f"\n1️⃣ Checking required columns...")
         
         required_cols = {
             'io_green_driving_type': 'Device harsh events (primary)',
@@ -8711,11 +8730,11 @@ class UnifiedBehaviorAnalyzer:
         for col, description in required_cols.items():
             exists = col in df.columns
             has_data = df[col].notna().any() if exists else False
-            status = "âœ…" if exists and has_data else ("âš ï¸ exists but empty" if exists else "âŒ")
+            status = "✅" if exists and has_data else ("⚠️ exists but empty" if exists else "❌")
             print(f"   {status} {col}: {description}")
         
         # Check 2: io_green_driving_type values
-        print(f"\n2ï¸âƒ£ Checking io_green_driving_type values...")
+        print(f"\n2️⃣ Checking io_green_driving_type values...")
         
         if 'io_green_driving_type' in df.columns:
             value_counts = df['io_green_driving_type'].value_counts(dropna=False)
@@ -8734,10 +8753,10 @@ class UnifiedBehaviorAnalyzer:
             total_device_events = events_mask.sum()
             print(f"\n   Total device-reported events: {total_device_events}")
         else:
-            print("   âŒ io_green_driving_type column not found!")
+            print("   ❌ io_green_driving_type column not found!")
         
         # Check 3: Calculate acceleration manually
-        print(f"\n3ï¸âƒ£ Testing acceleration calculation...")
+        print(f"\n3️⃣ Testing acceleration calculation...")
         
         if 'speed_kmh' in df.columns and 'time_diff_s' in df.columns:
             df_test = df.copy()
@@ -8746,9 +8765,9 @@ class UnifiedBehaviorAnalyzer:
             df_test['acceleration_ms2'] = df_test['speed_ms'].diff() / df_test['time_diff_safe']
             
             print(f"   Acceleration stats:")
-            print(f"      Min: {df_test['acceleration_ms2'].min():.2f} m/sÂ²")
-            print(f"      Max: {df_test['acceleration_ms2'].max():.2f} m/sÂ²")
-            print(f"      Mean: {df_test['acceleration_ms2'].mean():.2f} m/sÂ²")
+            print(f"      Min: {df_test['acceleration_ms2'].min():.2f} m/s²")
+            print(f"      Max: {df_test['acceleration_ms2'].max():.2f} m/s²")
+            print(f"      Mean: {df_test['acceleration_ms2'].mean():.2f} m/s²")
             
             # Check against thresholds
             HARSH_BRAKE_THRESHOLD = 2.5  # Adjusted for sparse GPS
@@ -8758,13 +8777,13 @@ class UnifiedBehaviorAnalyzer:
             harsh_accel_calc = (df_test['acceleration_ms2'] > HARSH_ACCEL_THRESHOLD).sum()
             
             print(f"\n   Calculated harsh events (threshold adjusted for sparse GPS):")
-            print(f"      Harsh braking (< -{HARSH_BRAKE_THRESHOLD} m/sÂ²): {harsh_braking_calc}")
-            print(f"      Harsh acceleration (> {HARSH_ACCEL_THRESHOLD} m/sÂ²): {harsh_accel_calc}")
+            print(f"      Harsh braking (< -{HARSH_BRAKE_THRESHOLD} m/s²): {harsh_braking_calc}")
+            print(f"      Harsh acceleration (> {HARSH_ACCEL_THRESHOLD} m/s²): {harsh_accel_calc}")
         else:
-            print("   âŒ Missing speed_kmh or time_diff_s columns!")
+            print("   ❌ Missing speed_kmh or time_diff_s columns!")
         
         # Check 4: Heading/turn detection
-        print(f"\n4ï¸âƒ£ Checking heading for turn detection...")
+        print(f"\n4️⃣ Checking heading for turn detection...")
         
         heading_col = None
         for col_name in ['heading', 'course', 'bearing', 'direction']:
@@ -8773,10 +8792,10 @@ class UnifiedBehaviorAnalyzer:
                 break
         
         if heading_col:
-            print(f"   âœ… Found heading column: '{heading_col}'")
+            print(f"   ✅ Found heading column: '{heading_col}'")
             print(f"   Heading stats:")
-            print(f"      Min: {df[heading_col].min():.1f}Â°")
-            print(f"      Max: {df[heading_col].max():.1f}Â°")
+            print(f"      Min: {df[heading_col].min():.1f}°")
+            print(f"      Max: {df[heading_col].max():.1f}°")
             print(f"      Non-null values: {df[heading_col].notna().sum()}")
             
             # Calculate heading changes
@@ -8787,19 +8806,19 @@ class UnifiedBehaviorAnalyzer:
             )
             
             large_turns = (df_test['heading_change'] > 30).sum()
-            print(f"   Large heading changes (>30Â°): {large_turns}")
+            print(f"   Large heading changes (>30°): {large_turns}")
         else:
-            print("   âš ï¸ No heading column found - turn detection will be limited")
+            print("   ⚠️ No heading column found - turn detection will be limited")
         
         # Check 5: Test harsh events analysis
-        print(f"\n5ï¸âƒ£ Testing harsh events analysis...")
+        print(f"\n5️⃣ Testing harsh events analysis...")
         
         if hasattr(analyzer, '_analyze_harsh_events'):
             try:
                 analyzer._analyze_harsh_events()
                 
                 results = analyzer.results.get('harsh_events', {})
-                print(f"   âœ… Analysis completed!")
+                print(f"   ✅ Analysis completed!")
                 print(f"   Results:")
                 print(f"      Detection method: {results.get('detection_method', 'unknown')}")
                 print(f"      Total events: {results.get('total_harsh_events', 0)}")
@@ -8816,43 +8835,43 @@ class UnifiedBehaviorAnalyzer:
                     for key, value in sample.items():
                         print(f"      {key}: {value}")
             except Exception as e:
-                print(f"   âŒ Analysis failed: {e}")
+                print(f"   ❌ Analysis failed: {e}")
                 import traceback
                 traceback.print_exc()
         else:
-            print("   âŒ _analyze_harsh_events() method not found!")
+            print("   ❌ _analyze_harsh_events() method not found!")
         
         # ========================================================================
         # SUMMARY
         # ========================================================================
         print("\n" + "=" * 70)
-        print("ðŸ“‹ DEBUG SUMMARY")
+        print("📋 DEBUG SUMMARY")
         print("=" * 70)
         
         issues = []
         
         # Traffic lights issues
         if len(traffic_lights) == 0:
-            issues.append("âŒ No traffic lights in map_data")
+            issues.append("❌ No traffic lights in map_data")
         if traffic_lights and 'osmid' not in traffic_lights[0]:
-            issues.append("âš ï¸ Traffic lights missing 'osmid' field")
+            issues.append("⚠️ Traffic lights missing 'osmid' field")
         if len(driven_road_ids) == 0:
-            issues.append("âŒ No driven road IDs set")
+            issues.append("❌ No driven road IDs set")
         
         # Harsh events issues
         if 'io_green_driving_type' not in df.columns:
-            issues.append("âš ï¸ No device harsh events (io_green_driving_type missing)")
+            issues.append("⚠️ No device harsh events (io_green_driving_type missing)")
         if 'speed_kmh' not in df.columns or 'time_diff_s' not in df.columns:
-            issues.append("âŒ Missing columns for acceleration calculation")
+            issues.append("❌ Missing columns for acceleration calculation")
         if not heading_col:
-            issues.append("âš ï¸ No heading column for turn detection")
+            issues.append("⚠️ No heading column for turn detection")
         
         if issues:
-            print("\nðŸ”´ Issues found:")
+            print("\n🔴 Issues found:")
             for issue in issues:
                 print(f"   {issue}")
         else:
-            print("\nðŸŸ¢ All checks passed!")
+            print("\n🟢 All checks passed!")
         
         print("\n" + "=" * 70)
         print("DEBUG COMPLETE")
@@ -8874,7 +8893,7 @@ class UnifiedBehaviorAnalyzer:
     
     def quick_test_traffic_lights(map_manager):
         """Quick test for traffic lights data"""
-        print("\nðŸš¦ Quick Traffic Lights Test")
+        print("\n🚦 Quick Traffic Lights Test")
         print("-" * 40)
         
         traffic_lights = map_manager.map_data.get('traffic_lights', [])
@@ -8890,7 +8909,7 @@ class UnifiedBehaviorAnalyzer:
     
     def quick_test_harsh_events(df):
         """Quick test for harsh events data availability"""
-        print("\nâš ï¸ Quick Harsh Events Test")
+        print("\n⚠️ Quick Harsh Events Test")
         print("-" * 40)
         
         # Check io_green_driving_type
@@ -8994,6 +9013,11 @@ class UnifiedReportGenerator:
         if hasattr(self.processor, 'weekly_data') and self.processor.weekly_data:
             extracted_data['gps_data'] = {
                 week: df.copy() for week, df in self.processor.weekly_data.items()
+            }
+        elif hasattr(self.processor, 'processed_df') and self.processor.processed_df is not None:
+            # Single-trip case - GPS data is in processed_df, not weekly_data
+            extracted_data['gps_data'] = {
+                "Week 1": self.processor.processed_df.copy()
             }
         
         # Calculate aggregated metrics (for multi-week)
@@ -9579,13 +9603,13 @@ class UnifiedReportGenerator:
             diff = -diff  # Invert for metrics where lower is better
         
         if abs(diff) < threshold:
-            arrow = 'â†’'
+            arrow = '→'
             direction = 'stable'
         elif diff > 0:
-            arrow = 'â†‘'
+            arrow = '↑'
             direction = 'improving'
         else:
-            arrow = 'â†“'
+            arrow = '↓'
             direction = 'declining'
         
         return {
@@ -9821,19 +9845,19 @@ class UnifiedReportGenerator:
         """Print unified summary"""
         
         print("\n" + "=" * 70)
-        print("ðŸ›£ï¸  UNIFIED ANALYSIS SUMMARY")
+        print("🛣️  UNIFIED ANALYSIS SUMMARY")
         print("=" * 70)
         
         all_data = self.extract_all_data()
         metadata = all_data['metadata']
         trip_summary = all_data['trip_summary']
         
-        print(f"ðŸ‘¤ Driver: {metadata['driver_name']}")
-        print(f"ðŸ“Š Analysis Type: {metadata['analysis_type']}")
-        print(f"ðŸ—“ï¸  Weeks Analyzed: {metadata['weeks_analyzed']}")
+        print(f"👤 Driver: {metadata['driver_name']}")
+        print(f"📊 Analysis Type: {metadata['analysis_type']}")
+        print(f"🗓️  Weeks Analyzed: {metadata['weeks_analyzed']}")
         
         # Trip summary
-        print(f"\nðŸ“ TRIP SUMMARY:")
+        print(f"\n📍 TRIP SUMMARY:")
         print(f"   Total Distance: {trip_summary['totals']['total_distance_km']:.1f} km")
         print(f"   Total Duration: {trip_summary['totals']['total_duration_hours']:.1f} hours")
         print(f"   Total Trips: {trip_summary['totals']['total_trips']}")
@@ -9841,7 +9865,7 @@ class UnifiedReportGenerator:
         
         # Performance
         aggregated = all_data['aggregated_metrics']
-        print(f"\nðŸ† PERFORMANCE:")
+        print(f"\n🏆 PERFORMANCE:")
         print(f"   Overall Score: {aggregated['combined_metrics']['avg_overall_score']:.1f}%")
         print(f"   Speed Compliance: {aggregated['combined_metrics']['avg_speed_compliance']:.1f}%")
         print(f"   Stop Sign Compliance: {aggregated['combined_metrics']['avg_stop_sign_compliance']:.1f}%")
@@ -9851,7 +9875,7 @@ class UnifiedReportGenerator:
         # Trends (if multi-week)
         if not self.is_single_week and all_data.get('trends', {}).get('overall_trend'):
             trend = all_data['trends']['overall_trend']
-            print(f"\nðŸ“ˆ TREND: {trend['direction'].upper()}")
+            print(f"\n📈 TREND: {trend['direction'].upper()}")
             print(f"   Change: {trend['change_percentage']:+.1f}%")
         
         print("=" * 70)
@@ -9942,7 +9966,7 @@ class DrivingBehaviorMapGenerator:
     def generate_map(self, output_filename):
         """Generate complete map with all features"""
         
-        print(f"   ðŸ—ºï¸ Generating map for {self.week_label}...")
+        print(f"   🗺️ Generating map for {self.week_label}...")
         
         # Create base map
         self._create_base_map()
@@ -9972,7 +9996,7 @@ class DrivingBehaviorMapGenerator:
         # Save map
         self._save_map(output_filename)
         
-        print(f"   âœ… Map generated with {self.feature_count} features")
+        print(f"   ✅ Map generated with {self.feature_count} features")
         return output_filename
     
     # ========================================================================
@@ -10045,7 +10069,7 @@ class DrivingBehaviorMapGenerator:
             
             <!-- Trip Summary -->
             <div style="background: #f0f9ff; padding: 8px; border-radius: 4px; margin-bottom: 10px;">
-                <h4 style="margin: 0 0 5px 0; color: #1E3A8A; font-size: 12px;">ðŸ“ Trip Summary</h4>
+                <h4 style="margin: 0 0 5px 0; color: #1E3A8A; font-size: 12px;">📍 Trip Summary</h4>
                 <table style="width: 100%; font-size: 11px;">
                     <tr><td>Distance:</td><td style="text-align: right;"><b>{distance_km:.1f} km</b></td></tr>
                     <tr><td>Duration:</td><td style="text-align: right;"><b>{duration_hours:.1f} h</b></td></tr>
@@ -10057,7 +10081,7 @@ class DrivingBehaviorMapGenerator:
             
             <!-- Scores -->
             <div style="background: #f0fdf4; padding: 8px; border-radius: 4px; margin-bottom: 10px;">
-                <h4 style="margin: 0 0 5px 0; color: #166534; font-size: 12px;">ðŸ† Performance</h4>
+                <h4 style="margin: 0 0 5px 0; color: #166534; font-size: 12px;">🏆 Performance</h4>
                 <table style="width: 100%; font-size: 11px;">
                     <tr>
                         <td>Overall Score:</td>
@@ -10080,7 +10104,7 @@ class DrivingBehaviorMapGenerator:
             
             <!-- Violations -->
             <div style="background: #fef2f2; padding: 8px; border-radius: 4px; margin-bottom: 10px;">
-                <h4 style="margin: 0 0 5px 0; color: #991b1b; font-size: 12px;">âš ï¸ Events</h4>
+                <h4 style="margin: 0 0 5px 0; color: #991b1b; font-size: 12px;">⚠️ Events</h4>
                 <table style="width: 100%; font-size: 11px;">
                     <tr><td>Speed Violations:</td><td style="text-align: right;"><b>{speed_violations}</b></td></tr>
                     <tr><td>Traffic Lights:</td><td style="text-align: right;"><b>{traffic_light_count}</b> ({traffic_light_stop_pct:.0f}% stopped)</td></tr>
@@ -10090,8 +10114,8 @@ class DrivingBehaviorMapGenerator:
             
             <!-- Legend -->
             <div style="font-size: 10px; color: #666; border-top: 1px solid #ddd; padding-top: 8px;">
-                ðŸ”´ GPS points &nbsp; ðŸŸ  GPS path<br>
-                ðŸ”µ Road-matched &nbsp; ðŸŸ¢ Route geometry
+                🔴 GPS points &nbsp; 🟠 GPS path<br>
+                🔵 Road-matched &nbsp; 🟢 Route geometry
             </div>
         </div>
         """
@@ -10138,7 +10162,7 @@ class DrivingBehaviorMapGenerator:
                 <b>Location:</b> {row['lat']:.6f}, {row['lon']:.6f}<br>
                 <b>Speed:</b> {speed:.1f} km/h<br>
                 <b>Time:</b> {row.get('timestamp', 'N/A')}<br>
-                <b>Heading:</b> {row.get('heading', 'N/A')}Â°
+                <b>Heading:</b> {row.get('heading', 'N/A')}°
             </div>
             """
             
@@ -10153,7 +10177,7 @@ class DrivingBehaviorMapGenerator:
             ).add_to(gps_layer)
         
         gps_layer.add_to(self.map)
-        print(f"      ðŸ“ Added {len(self.week_gps_df)} GPS points")
+        print(f"      📍 Added {len(self.week_gps_df)} GPS points")
     
     def _add_gps_path(self):
         """Add GPS path line"""
@@ -10195,7 +10219,7 @@ class DrivingBehaviorMapGenerator:
                 ).add_to(matched_layer)
                 count += 1
             
-            print(f"      ðŸ›£ï¸ Added {count} road-matched points")
+            print(f"      🛣️ Added {count} road-matched points")
         
         matched_layer.add_to(self.map)
     
@@ -10219,7 +10243,7 @@ class DrivingBehaviorMapGenerator:
                 popup=f"Map-Matched Route - {self.week_label}"
             ).add_to(route_layer)
             
-            print(f"      ðŸ›¤ï¸ Added route geometry ({len(route_coords)} points)")
+            print(f"      🛤️ Added route geometry ({len(route_coords)} points)")
         
         route_layer.add_to(self.map)
     
@@ -10239,7 +10263,7 @@ class DrivingBehaviorMapGenerator:
         # Use all_episodes if available, otherwise worst_violations
         violations_to_plot = all_episodes if all_episodes else worst_violations
         
-        print(f"      ðŸš¨ Found {len(violations_to_plot)} speeding violations")
+        print(f"      🚨 Found {len(violations_to_plot)} speeding violations")
         
         for i, violation in enumerate(violations_to_plot[:20]):  # Limit to 20
             if 'lat' not in violation or 'lon' not in violation:
@@ -10259,12 +10283,12 @@ class DrivingBehaviorMapGenerator:
             <div style="font-family: Arial; font-size: 11px; min-width: 220px;">
                 <h4 style="margin: 0 0 8px 0; padding: 5px; background: {self._severity_bg_color(severity)}; 
                            color: white; border-radius: 4px;">
-                    ðŸš¨ Speed Violation #{i+1}
+                    🚨 Speed Violation #{i+1}
                 </h4>
                 
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr style="background: #f5f5f5;">
-                        <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“Š Speed Data</td>
+                        <td colspan="2" style="padding: 4px; font-weight: bold;">📊 Speed Data</td>
                     </tr>
                     <tr>
                         <td style="padding: 2px 4px;">Speed:</td>
@@ -10284,7 +10308,7 @@ class DrivingBehaviorMapGenerator:
                     </tr>
                     
                     <tr style="background: #fff3e0;">
-                        <td colspan="2" style="padding: 4px; font-weight: bold;">â±ï¸ Episode Details</td>
+                        <td colspan="2" style="padding: 4px; font-weight: bold;">⏱️ Episode Details</td>
                     </tr>
                     <tr>
                         <td style="padding: 2px 4px;">Duration:</td>
@@ -10300,7 +10324,7 @@ class DrivingBehaviorMapGenerator:
                     </tr>
                     
                     <tr style="background: #e3f2fd;">
-                        <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“ Location</td>
+                        <td colspan="2" style="padding: 4px; font-weight: bold;">📍 Location</td>
                     </tr>
                     <tr>
                         <td style="padding: 2px 4px;">Coordinates:</td>
@@ -10320,7 +10344,7 @@ class DrivingBehaviorMapGenerator:
             self.feature_count += 1
         
         speed_layer.add_to(self.map)
-        print(f"      âœ… Added {min(len(violations_to_plot), 20)} speeding markers")
+        print(f"      ✅ Added {min(len(violations_to_plot), 20)} speeding markers")
     
     def _severity_bg_color(self, severity):
         """Get background color for severity"""
@@ -10344,7 +10368,7 @@ class DrivingBehaviorMapGenerator:
         roundabout_data = self.week_analysis.get('roundabouts', {})
         approaches_detailed = roundabout_data.get('approaches_detailed', [])
         
-        print(f"      ðŸ”„ Found {len(approaches_detailed)} roundabout approaches")
+        print(f"      🔄 Found {len(approaches_detailed)} roundabout approaches")
         
         # Track plotted roundabouts to avoid duplicates
         plotted_roundabouts = set()
@@ -10413,7 +10437,7 @@ class DrivingBehaviorMapGenerator:
             self.feature_count += 1
         
         rb_layer.add_to(self.map)
-        print(f"      âœ… Added {len(plotted_roundabouts)} roundabout markers")
+        print(f"      ✅ Added {len(plotted_roundabouts)} roundabout markers")
     
     def _build_roundabout_popup(self, rb_id, lat, lon, status, color,
                                  anticipation, entry_compliant, entry_speed, exit_speed,
@@ -10426,17 +10450,17 @@ class DrivingBehaviorMapGenerator:
         
         def format_compliant(value):
             if value is None:
-                return "â“ Unknown"
-            return "âœ… Yes" if value else "âŒ No"
+                return "❓ Unknown"
+            return "✅ Yes" if value else "❌ No"
         
         def format_anticipation(cat):
             icons = {
-                'good': 'ðŸŸ¢ Good (150-100m)',
-                'moderate': 'ðŸŸ¡ Moderate (100-65m)',
-                'late': 'ðŸŸ  Late (<65m)',
-                'no_deceleration': 'ðŸ”´ No Deceleration'
+                'good': '🟢 Good (150-100m)',
+                'moderate': '🟡 Moderate (100-65m)',
+                'late': '🟠 Late (<65m)',
+                'no_deceleration': '🔴 No Deceleration'
             }
-            return icons.get(cat, f'âšª {cat}')
+            return icons.get(cat, f'⚪ {cat}')
         
         header_color = {
             'green': '#16a34a',
@@ -10449,12 +10473,12 @@ class DrivingBehaviorMapGenerator:
         <div style="font-family: Arial; font-size: 11px; min-width: 280px;">
             <h4 style="margin: 0 0 8px 0; padding: 5px; background: {header_color}; 
                        color: white; border-radius: 4px;">
-                ðŸ”„ Roundabout: {rb_id}
+                🔄 Roundabout: {rb_id}
             </h4>
             
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="background: #f5f5f5;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“ Location</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📍 Location</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Coordinates:</td>
@@ -10462,7 +10486,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #e3f2fd;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸŽ¯ Anticipation</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">🎯 Anticipation</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Category:</td>
@@ -10474,7 +10498,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #fff3e0;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“Š Zone Speeds</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📊 Zone Speeds</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">150-100m:</td>
@@ -10490,14 +10514,14 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #e8f5e9;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸš— Entry / Exit</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">🚗 Entry / Exit</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Entry Speed:</td>
                     <td style="padding: 2px 4px;">{format_speed(entry_speed)}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 2px 4px;">Entry Compliant (â‰¤34):</td>
+                    <td style="padding: 2px 4px;">Entry Compliant (≤34):</td>
                     <td style="padding: 2px 4px;">{format_compliant(entry_compliant)}</td>
                 </tr>
                 <tr>
@@ -10506,7 +10530,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #fce4ec;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">â­• Inside</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">⭕ Inside</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Points Inside:</td>
@@ -10518,7 +10542,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #ede7f6;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“ˆ Confidence: {confidence:.0f}%</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📈 Confidence: {confidence:.0f}%</td>
                 </tr>
             </table>
         </div>
@@ -10536,7 +10560,7 @@ class DrivingBehaviorMapGenerator:
         stop_data = self.week_analysis.get('stop_signs', {})
         approaches = stop_data.get('approaches_detailed', [])
         
-        print(f"      ðŸ›‘ Found {len(approaches)} stop sign approaches")
+        print(f"      🛑 Found {len(approaches)} stop sign approaches")
         
         for i, stop in enumerate(approaches):
             if not isinstance(stop, dict):
@@ -10559,13 +10583,13 @@ class DrivingBehaviorMapGenerator:
             # Determine color
             if compliance == 'STOP_OK':
                 marker_color = 'green'
-                status_icon = 'âœ…'
+                status_icon = '✅'
             elif compliance == 'STOP_KO':
                 marker_color = 'red'
-                status_icon = 'âŒ'
+                status_icon = '❌'
             else:
                 marker_color = 'gray'
-                status_icon = 'â“'
+                status_icon = '❓'
             
             popup_html = self._build_stop_sign_popup(
                 stop_id, stop_lat, stop_lon, compliance, status_icon,
@@ -10582,25 +10606,25 @@ class DrivingBehaviorMapGenerator:
             self.feature_count += 1
         
         stop_layer.add_to(self.map)
-        print(f"      âœ… Added {len(approaches)} stop sign markers")
+        print(f"      ✅ Added {len(approaches)} stop sign markers")
     
     def _build_stop_sign_popup(self, stop_id, lat, lon, compliance, status_icon,
                                 confidence, min_speed, closest_speed, evidence, gps_points):
         """Build stop sign popup HTML"""
         
         header_color = '#16a34a' if compliance == 'STOP_OK' else '#dc2626' if compliance == 'STOP_KO' else '#6b7280'
-        evidence_html = '<br>'.join([f"â€¢ {e}" for e in evidence]) if evidence else 'N/A'
+        evidence_html = '<br>'.join([f"• {e}" for e in evidence]) if evidence else 'N/A'
         
         return f"""
         <div style="font-family: Arial; font-size: 11px; min-width: 240px;">
             <h4 style="margin: 0 0 8px 0; padding: 5px; background: {header_color}; 
                        color: white; border-radius: 4px;">
-                ðŸ›‘ Stop Sign: {stop_id}
+                🛑 Stop Sign: {stop_id}
             </h4>
             
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="background: #e8f5e9;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">âœ… Compliance</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">✅ Compliance</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Result:</td>
@@ -10612,7 +10636,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #fff3e0;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸš— Speed Data</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">🚗 Speed Data</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Min Speed:</td>
@@ -10624,7 +10648,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #e3f2fd;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“Š Evidence</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📊 Evidence</td>
                 </tr>
                 <tr>
                     <td colspan="2" style="padding: 2px 4px; font-size: 10px;">{evidence_html}</td>
@@ -10654,7 +10678,7 @@ class DrivingBehaviorMapGenerator:
         tl_data = self.week_analysis.get('traffic_lights', {})
         approaches = tl_data.get('approaches_detailed', [])
         
-        print(f"      ðŸš¦ Found {len(approaches)} traffic light approaches")
+        print(f"      🚦 Found {len(approaches)} traffic light approaches")
         
         for i, tl in enumerate(approaches):
             if not isinstance(tl, dict):
@@ -10677,19 +10701,19 @@ class DrivingBehaviorMapGenerator:
             # Determine color
             if behavior == 'stopped':
                 marker_color = 'green'
-                status_icon = 'âœ…'
+                status_icon = '✅'
                 status_text = 'Stopped'
             elif behavior == 'slowed':
                 marker_color = 'orange'
-                status_icon = 'ðŸŸ¡'
+                status_icon = '🟡'
                 status_text = 'Slowed'
             elif behavior == 'passed_through':
                 marker_color = 'lightgreen'
-                status_icon = 'ðŸŸ¢'
+                status_icon = '🟢'
                 status_text = 'Passed (Green)'
             else:
                 marker_color = 'gray'
-                status_icon = 'â“'
+                status_icon = '❓'
                 status_text = 'Uncertain'
             
             popup_html = self._build_traffic_light_popup(
@@ -10707,7 +10731,7 @@ class DrivingBehaviorMapGenerator:
             self.feature_count += 1
         
         tl_layer.add_to(self.map)
-        print(f"      âœ… Added {len(approaches)} traffic light markers")
+        print(f"      ✅ Added {len(approaches)} traffic light markers")
     
     def _build_traffic_light_popup(self, tl_id, lat, lon, behavior, status_icon, status_text,
                                     confidence, min_speed, dwell_time, evidence, gps_points):
@@ -10720,18 +10744,18 @@ class DrivingBehaviorMapGenerator:
             'uncertain': '#6b7280'
         }
         header_color = header_colors.get(behavior, '#6b7280')
-        evidence_html = '<br>'.join([f"â€¢ {e}" for e in evidence]) if evidence else 'N/A'
+        evidence_html = '<br>'.join([f"• {e}" for e in evidence]) if evidence else 'N/A'
         
         return f"""
         <div style="font-family: Arial; font-size: 11px; min-width: 240px;">
             <h4 style="margin: 0 0 8px 0; padding: 5px; background: {header_color}; 
                        color: white; border-radius: 4px;">
-                ðŸš¦ Traffic Light: {tl_id}
+                🚦 Traffic Light: {tl_id}
             </h4>
             
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="background: #e8f5e9;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸš— Behavior</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">🚗 Behavior</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Result:</td>
@@ -10743,7 +10767,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #fff3e0;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“Š Data</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📊 Data</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Min Speed:</td>
@@ -10755,7 +10779,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #e3f2fd;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“‹ Evidence</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📋 Evidence</td>
                 </tr>
                 <tr>
                     <td colspan="2" style="padding: 2px 4px; font-size: 10px;">{evidence_html}</td>
@@ -10802,7 +10826,7 @@ class DrivingBehaviorMapGenerator:
             e['event_type'] = 'turn'
             all_events.append(e)
         
-        print(f"      âš ï¸ Found {len(all_events)} harsh events")
+        print(f"      ⚠️ Found {len(all_events)} harsh events")
         
         for i, event in enumerate(all_events[:30]):  # Limit to 30
             if 'lat' not in event or 'lon' not in event:
@@ -10850,7 +10874,7 @@ class DrivingBehaviorMapGenerator:
             self.feature_count += 1
         
         harsh_layer.add_to(self.map)
-        print(f"      âœ… Added {min(len(all_events), 30)} harsh event markers")
+        print(f"      ✅ Added {min(len(all_events), 30)} harsh event markers")
     
     def _build_harsh_event_popup(self, num, event_name, lat, lon, speed, g_force, heading_change, source, timestamp):
         """Build harsh event popup HTML"""
@@ -10863,18 +10887,18 @@ class DrivingBehaviorMapGenerator:
         header_color = header_colors.get(event_name, '#6b7280')
         
         g_force_str = f"{g_force:.2f}g" if g_force is not None else "N/A"
-        heading_str = f"{heading_change:.0f}Â°" if heading_change is not None else "N/A"
+        heading_str = f"{heading_change:.0f}°" if heading_change is not None else "N/A"
         
         return f"""
         <div style="font-family: Arial; font-size: 11px; min-width: 220px;">
             <h4 style="margin: 0 0 8px 0; padding: 5px; background: {header_color}; 
                        color: white; border-radius: 4px;">
-                âš ï¸ {event_name} #{num}
+                ⚠️ {event_name} #{num}
             </h4>
             
             <table style="width: 100%; border-collapse: collapse;">
                 <tr style="background: #fef2f2;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“Š Event Data</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📊 Event Data</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Speed:</td>
@@ -10890,7 +10914,7 @@ class DrivingBehaviorMapGenerator:
                 </tr>
                 
                 <tr style="background: #f5f5f5;">
-                    <td colspan="2" style="padding: 4px; font-weight: bold;">ðŸ“ Details</td>
+                    <td colspan="2" style="padding: 4px; font-weight: bold;">📍 Details</td>
                 </tr>
                 <tr>
                     <td style="padding: 2px 4px;">Source:</td>
@@ -10920,7 +10944,7 @@ class DrivingBehaviorMapGenerator:
         school_data = self.week_analysis.get('school_zones', {})
         passages = school_data.get('violations_detail', [])
         
-        print(f"      ðŸ« Found {len(passages)} school zone passages")
+        print(f"      🏫 Found {len(passages)} school zone passages")
         
         for i, passage in enumerate(passages):
             if not isinstance(passage, dict):
@@ -10944,11 +10968,11 @@ class DrivingBehaviorMapGenerator:
             # Add marker
             popup_html = f"""
             <div style="font-family: Arial; font-size: 11px;">
-                <b>ðŸ« {passage.get('school_name', 'School Zone')}</b><br>
+                <b>🏫 {passage.get('school_name', 'School Zone')}</b><br>
                 <hr>
                 Speed: {passage.get('speed_kmh', 0):.1f} km/h<br>
                 Limit: {passage.get('school_zone_limit', 30)} km/h<br>
-                Exceeded: {'âŒ Yes' if exceeded else 'âœ… No'}
+                Exceeded: {'❌ Yes' if exceeded else '✅ No'}
             </div>
             """
             
@@ -11032,12 +11056,12 @@ class DrivingBehaviorMapGenerator:
             
             <div style="margin-bottom: 8px;">
                 <b style="color: #555;">Features</b>
-                <div style="margin: 2px 0;">ðŸš¨ Speed violations</div>
-                <div style="margin: 2px 0;">ðŸ”„ Roundabouts</div>
-                <div style="margin: 2px 0;">ðŸ›‘ Stop signs</div>
-                <div style="margin: 2px 0;">ðŸš¦ Traffic lights</div>
-                <div style="margin: 2px 0;">âš ï¸ Harsh events</div>
-                <div style="margin: 2px 0;">ðŸ« School zones</div>
+                <div style="margin: 2px 0;">🚨 Speed violations</div>
+                <div style="margin: 2px 0;">🔄 Roundabouts</div>
+                <div style="margin: 2px 0;">🛑 Stop signs</div>
+                <div style="margin: 2px 0;">🚦 Traffic lights</div>
+                <div style="margin: 2px 0;">⚠️ Harsh events</div>
+                <div style="margin: 2px 0;">🏫 School zones</div>
             </div>
             
             <div>
@@ -11073,7 +11097,7 @@ class DrivingBehaviorMapGenerator:
         output_path = os.path.join(output_dir, output_filename)
         self.map.save(output_path)
         
-        print(f"      ðŸ’¾ Saved: {output_path}")
+        print(f"      💾 Saved: {output_path}")
 
 
 # =============================================================
@@ -11092,27 +11116,27 @@ def generate_plots_main(extracted_data, output_prefix="analysis"):
         List of generated filenames
     """
     
-    print("ðŸ—ºï¸ Generating weekly maps...")
+    print("🗺️ Generating weekly maps...")
     
     weekly_results = extracted_data.get('weekly_data', {})
     weekly_gps_data = extracted_data.get('gps_data', {})
     
     if not weekly_results:
-        print("âŒ No weekly results in extracted data")
+        print("❌ No weekly results in extracted data")
         return []
     
     if not weekly_gps_data:
-        print("âŒ No GPS data in extracted data")
+        print("❌ No GPS data in extracted data")
         return []
     
-    print(f"ðŸ“Š Found data for {len(weekly_results)} weeks")
+    print(f"📊 Found data for {len(weekly_results)} weeks")
     
     generated_files = []
     
     for week_label, week_gps_df in weekly_gps_data.items():
         try:
             if week_gps_df is None or len(week_gps_df) == 0:
-                print(f"âš ï¸ No GPS data for {week_label}")
+                print(f"⚠️ No GPS data for {week_label}")
                 continue
             
             safe_week = week_label.replace(' ', '_')
@@ -11130,11 +11154,11 @@ def generate_plots_main(extracted_data, output_prefix="analysis"):
             generated_files.append(filename)
             
         except Exception as e:
-            print(f"âŒ Failed to generate map for {week_label}: {e}")
+            print(f"❌ Failed to generate map for {week_label}: {e}")
             import traceback
             traceback.print_exc()
     
-    print(f"ðŸŽ‰ Generated {len(generated_files)} maps")
+    print(f"🎉 Generated {len(generated_files)} maps")
     return generated_files
 
 
@@ -11573,13 +11597,13 @@ class MapDataVerificationExcelGenerator:
             try:
                 # Attempt to generate and save the Excel file
                 excel_file = verification_generator.generate_verification_excel(all_data, output_file)
-                print(f"âœ… Successfully saved verification Excel to: {output_file}")
+                print(f"✅ Successfully saved verification Excel to: {output_file}")
                 break
             except PermissionError:
-                print(f"âš ï¸ Permission denied for '{output_file}' (likely open in another program). Trying next suffix...")
+                print(f"⚠️ Permission denied for '{output_file}' (likely open in another program). Trying next suffix...")
                 counter += 1
             except Exception as e:
-                print(f"âŒ Unexpected error while generating Excel: {str(e)}")
+                print(f"❌ Unexpected error while generating Excel: {str(e)}")
                 return None
         
         return {
@@ -11604,38 +11628,38 @@ FRENCH_STRINGS = {
 
     # Driver Info Labels
     'driver_label': 'Conducteur :',
-    'analysis_type_label': 'Type dâ€™Analyse :',
+    'analysis_type_label': 'Type d’Analyse :',
     'report_date_label': 'Date du Rapport :',
     'report_type_label': 'Type de Rapport :',
     'report_type_value': 'Analyse Contextuelle du Comportement',
 
     # KPI Section
-    'kpi_title': 'Indicateurs ClÃ©s',
+    'kpi_title': 'Indicateurs Clés',
     'overall_score': 'Score Global',
     'total_violations': 'Infractions Totales',
     'speed_compliance': 'Respect des Vitesses',
     'roundabout_performance': 'Comportement aux Rond-Points',
-    'school_zone_safety': 'SÃ©curitÃ© en Zone Scolaire',
+    'school_zone_safety': 'Sécurité en Zone Scolaire',
     'stop_signs_compliance': 'Respect des Stops',
 
     # RAG Status
     'excellent': 'Excellent',
     'good': 'Bon',
-    'needs_work': 'Ã€ AmÃ©liorer',
+    'needs_work': 'À Améliorer',
     'critical': 'Critique',
-    'no_data': 'Aucune DonnÃ©e',
+    'no_data': 'Aucune Donnée',
 
     # Speed Analysis
     'top_violations_title': 'Top 3 Infractions de Vitesse (Toutes Semaines)',
     'speed_analysis_title': 'Analyse par Zone de Vitesse',
-    'speed_violations_headers': ['Semaine', 'Vitesse (km/h)', 'Limite (km/h)', 'ExcÃ¨s (km/h)', 'GravitÃ©'],
+    'speed_violations_headers': ['Semaine', 'Vitesse (km/h)', 'Limite (km/h)', 'Excès (km/h)', 'Gravité'],
     'speed_zone_headers': ['Semaine', 'Zone', 'Nb. Infractions', 'Respect (%)', 'Limite (km/h)', 'Vitesse Max (km/h)'],
     'speed_chart_title': 'Respect Hebdomadaire par Zone de Vitesse (%)',
 
     # Severity levels
     'severe': 'Grave',
     'major': 'Majeur',
-    'moderate': 'ModÃ©rÃ©',
+    'moderate': 'Modéré',
     'minor': 'Mineur',
 
     # Roundabout Section
@@ -11653,37 +11677,37 @@ FRENCH_STRINGS = {
 
     # Stop Signs
     'stop_sign_title': 'Respect des Panneaux Stop',
-    'stop_sign_headers': ['Semaine', 'Stops', 'Vitesse Ã  20m', 
-                          'Limite Ã  20m', 'Respect', 'Respect (%)'],
+    'stop_sign_headers': ['Semaine', 'Stops', 'Vitesse à 20m', 
+                          'Limite à 20m', 'Respect', 'Respect (%)'],
     'stop_chart_title': 'Respect des Stops par Semaine',
 
     # Improvement Section
-    'improvement_title': 'Axes dâ€™AmÃ©lioration',
+    'improvement_title': 'Axes d’Amélioration',
 
     # Improvement Categories
     'speed_management': 'Gestion de la Vitesse',
     'roundabout_technique': 'Technique aux Rond-Points',
     'stop_sign_compliance': 'Respect des Stops',
-    'school_zone_safety': 'SÃ©curitÃ© en Zone Scolaire',
-    'overall_awareness': 'Sensibilisation GÃ©nÃ©rale',
+    'school_zone_safety': 'Sécurité en Zone Scolaire',
+    'overall_awareness': 'Sensibilisation Générale',
     'excellent_performance': 'Performance Exemplaire',
 
     # Recommendations
-    'speed_recommendation': 'Maintenez une vitesse adaptÃ©e dans les zones de transition et Ã  limitation variable.',
-    'roundabout_recommendation': 'RÃ©duisez la vitesse dÃ¨s 150m avant un rond-point pour une approche fluide.',
-    'stop_recommendation': 'ArrÃªtez-vous complÃ¨tement aux stops. Comptez â€œmille-unâ€ avant de repartir.',
-    'school_recommendation': 'Ralentissez proactivement Ã  lâ€™approche des Ã©coles, surtout aux heures dâ€™entrÃ©e/sortie.',
-    'awareness_recommendation': 'Renforcez votre attention aux limitations et panneaux. Envisagez une formation prÃ©ventive.',
-    'excellent_recommendation': 'Continuez Ã  maintenir vos standards Ã©levÃ©s dans toutes les catÃ©gories Ã©valuÃ©es.',
+    'speed_recommendation': 'Maintenez une vitesse adaptée dans les zones de transition et à limitation variable.',
+    'roundabout_recommendation': 'Réduisez la vitesse dès 150m avant un rond-point pour une approche fluide.',
+    'stop_recommendation': 'Arrêtez-vous complètement aux stops. Comptez “mille-un” avant de repartir.',
+    'school_recommendation': 'Ralentissez proactivement à l’approche des écoles, surtout aux heures d’entrée/sortie.',
+    'awareness_recommendation': 'Renforcez votre attention aux limitations et panneaux. Envisagez une formation préventive.',
+    'excellent_recommendation': 'Continuez à maintenir vos standards élevés dans toutes les catégories évaluées.',
 
     # Priority levels
-    'high_priority': 'PrioritÃ© Ã‰levÃ©e',
-    'medium_priority': 'PrioritÃ© Moyenne',
-    'low_priority': 'PrioritÃ© Faible',
+    'high_priority': 'Priorité Élevée',
+    'medium_priority': 'Priorité Moyenne',
+    'low_priority': 'Priorité Faible',
 
     # Footer
-    'footer_text': 'Rapport gÃ©nÃ©rÃ© par la plateforme FeelGood Conduite',
-    'generated_text': 'Rapport GÃ©nÃ©rÃ© :',
+    'footer_text': 'Rapport généré par la plateforme FeelGood Conduite',
+    'generated_text': 'Rapport Généré :',
 
     # Chart axis labels
     'week_label': 'Semaine',
@@ -11695,9 +11719,9 @@ FRENCH_STRINGS = {
     'week': 'Semaine',
     'na': 'N/D',
     'allowed_speed': '10 km/h',
-    'stop_chart_y_axis': 'ConformitÃ© %',
+    'stop_chart_y_axis': 'Conformité %',
     'good_behavior_chart_label': 'Bon Comportement %',
-    'compliance_chart_label': 'ConformitÃ© %',
+    'compliance_chart_label': 'Conformité %',
 }
 
 
@@ -11742,88 +11766,88 @@ class FeelGoodDrivingReportGenerator:
         'report_type_value': 'Analyse Contextuelle du Comportement',
         
         # Trip Summary
-        'trip_summary_title': 'RÃ©sumÃ© des Trajets',
-        'trip_headers': ['Semaine', 'Distance (km)', 'DurÃ©e (h:mm)', 'Trajets', 'Vitesse Moy.', 'Vitesse Max'],
+        'trip_summary_title': 'Résumé des Trajets',
+        'trip_headers': ['Semaine', 'Distance (km)', 'Durée (h:mm)', 'Trajets', 'Vitesse Moy.', 'Vitesse Max'],
         
         # KPI
-        'kpi_title': 'Indicateurs ClÃ©s',
+        'kpi_title': 'Indicateurs Clés',
         'overall_score': 'Score Global',
         'total_violations': 'Infractions Totales',
         'speed_compliance': 'Respect des Vitesses',
         'roundabout_performance': 'Comportement Rond-Points',
         'stop_signs_compliance': 'Respect des Stops',
         'traffic_light_compliance': 'Respect des Feux',
-        'harsh_events_rate': 'Ã‰vÃ©nements Brusques',
+        'harsh_events_rate': 'Événements Brusques',
         
         # Speed
         'top_violations_title': 'Top 3 Infractions de Vitesse (Toutes Semaines)',
-        'speed_violations_headers': ['Semaine', 'Vitesse (km/h)', 'Limite (km/h)', 'ExcÃ¨s (km/h)', 'GravitÃ©'],
+        'speed_violations_headers': ['Semaine', 'Vitesse (km/h)', 'Limite (km/h)', 'Excès (km/h)', 'Gravité'],
         'speed_analysis_title': 'Analyse par Zone de Vitesse',
         'speed_zone_headers': ['Semaine', 'Zone', 'Nb. Infractions', 'Respect (%)', 'Limite (km/h)', 'Vitesse Max'],
         'speed_chart_title': 'Respect Hebdomadaire par Zone de Vitesse (%)',
         
         # Roundabouts
         'roundabout_title': 'Approche des Rond-Points',
-        'roundabout_headers': ['Semaine', 'Rond-Points', 'Bonne\n(150-100m)', 'ModÃ©rÃ©e\n(100-65m)', 
-                              'Tardive\n(<65m)', 'Pas de\nDÃ©cÃ©l.', 'EntrÃ©e\nConforme', 'ConformitÃ©\n(%)'],
+        'roundabout_headers': ['Semaine', 'Rond-Points', 'Bonne\n(150-100m)', 'Modérée\n(100-65m)', 
+                              'Tardive\n(<65m)', 'Pas de\nDécél.', 'Entrée\nConforme', 'Conformité\n(%)'],
         'roundabout_chart_title': 'Anticipation aux Rond-Points',
         
         # Stop Signs
         'stop_sign_title': 'Respect des Panneaux Stop',
-        'stop_sign_headers': ['Semaine', 'Panneaux\nStop', 'Approches', 'ArrÃªt\nCorrect', 
-                             'ArrÃªt Non-\nConforme', 'Incertain', 'ConformitÃ©\n(%)'],
+        'stop_sign_headers': ['Semaine', 'Panneaux\nStop', 'Approches', 'Arrêt\nCorrect', 
+                             'Arrêt Non-\nConforme', 'Incertain', 'Conformité\n(%)'],
         'stop_chart_title': 'Respect des Stops par Semaine',
         
         # Traffic Lights
         'traffic_light_title': 'Comportement aux Feux de Signalisation',
-        'traffic_light_headers': ['Semaine', 'Feux\nDÃ©tectÃ©s', 'Approches', 'ArrÃªt\nComplet', 
-                                  'Ralenti', 'Passage\n(Vert)', 'Taux ArrÃªt\n(%)'],
+        'traffic_light_headers': ['Semaine', 'Feux\nDétectés', 'Approches', 'Arrêt\nComplet', 
+                                  'Ralenti', 'Passage\n(Vert)', 'Taux Arrêt\n(%)'],
         'traffic_light_chart_title': 'Comportement aux Feux par Semaine',
         
         # Harsh Events
-        'harsh_events_title': 'Ã‰vÃ©nements de Conduite Brusque',
-        'harsh_events_headers': ['Semaine', 'Total\nÃ‰vÃ©nements', 'Freinages\nBrusques', 
-                                 'AccÃ©lÃ©rations\nBrusques', 'Virages\nSerrÃ©s', 'Ã‰vÃ©nements\n/100km', 'SÃ©vÃ©ritÃ©'],
-        'harsh_events_chart_title': 'Ã‰vÃ©nements Brusques par Semaine',
+        'harsh_events_title': 'Événements de Conduite Brusque',
+        'harsh_events_headers': ['Semaine', 'Total\nÉvénements', 'Freinages\nBrusques', 
+                                 'Accélérations\nBrusques', 'Virages\nSerrés', 'Événements\n/100km', 'Sévérité'],
+        'harsh_events_chart_title': 'Événements Brusques par Semaine',
         
         # Severity
-        'severe': 'SÃ©vÃ¨re',
+        'severe': 'Sévère',
         'major': 'Majeur',
-        'moderate': 'ModÃ©rÃ©',
+        'moderate': 'Modéré',
         'minor': 'Mineur',
         
         # Harsh Events Severity
         'excellent': 'Excellent',
         'good': 'Bon',
-        'needs_work': 'Ã€ AmÃ©liorer',
+        'needs_work': 'À Améliorer',
         'critical': 'Critique',
         'no_data': 'N/A',
         
         # Improvements
-        'improvement_title': "Axes d'AmÃ©lioration",
+        'improvement_title': "Axes d'Amélioration",
         'speed_management': 'Gestion de la Vitesse',
-        'speed_recommendation': 'Respectez les limites de vitesse, particuliÃ¨rement dans les zones Ã  risque.',
+        'speed_recommendation': 'Respectez les limites de vitesse, particulièrement dans les zones à risque.',
         'roundabout_technique': 'Technique aux Rond-Points',
-        'roundabout_recommendation': 'RÃ©duisez la vitesse dÃ¨s 150m avant un rond-point pour une approche fluide.',
+        'roundabout_recommendation': 'Réduisez la vitesse dès 150m avant un rond-point pour une approche fluide.',
         'stop_sign_compliance': 'Respect des Stops',
-        'stop_recommendation': 'ArrÃªtez-vous complÃ¨tement aux stops. Comptez "mille-un" avant de repartir.',
+        'stop_recommendation': 'Arrêtez-vous complètement aux stops. Comptez "mille-un" avant de repartir.',
         'traffic_light_compliance': 'Respect des Feux',
-        'traffic_light_recommendation': 'Anticipez les feux et prÃ©parez-vous Ã  vous arrÃªter.',
+        'traffic_light_recommendation': 'Anticipez les feux et préparez-vous à vous arrêter.',
         'harsh_driving': 'Conduite Souple',
-        'harsh_recommendation': 'Adoptez une conduite plus progressive pour rÃ©duire les freinages et accÃ©lÃ©rations brusques.',
-        'overall_awareness': 'Sensibilisation GÃ©nÃ©rale',
-        'awareness_recommendation': 'Renforcez votre attention aux limitations et panneaux. Envisagez une formation prÃ©ventive.',
+        'harsh_recommendation': 'Adoptez une conduite plus progressive pour réduire les freinages et accélérations brusques.',
+        'overall_awareness': 'Sensibilisation Générale',
+        'awareness_recommendation': 'Renforcez votre attention aux limitations et panneaux. Envisagez une formation préventive.',
         'excellent_performance': 'Performance Excellente',
         'excellent_recommendation': 'Continuez ainsi ! Votre conduite est exemplaire.',
         
         # Priority
-        'high_priority': 'PrioritÃ© Ã‰levÃ©e',
-        'medium_priority': 'PrioritÃ© Moyenne',
-        'low_priority': 'PrioritÃ© Basse',
+        'high_priority': 'Priorité Élevée',
+        'medium_priority': 'Priorité Moyenne',
+        'low_priority': 'Priorité Basse',
         
         # Footer
-        'footer_text': 'Rapport gÃ©nÃ©rÃ© par la plateforme FeelGood Conduite.',
-        'generated_text': 'Rapport GÃ©nÃ©rÃ©: '
+        'footer_text': 'Rapport généré par la plateforme FeelGood Conduite.',
+        'generated_text': 'Rapport Généré: '
     }
 
     # ========================================================================
@@ -11847,7 +11871,7 @@ class FeelGoodDrivingReportGenerator:
             'brand_light': 'DBEAFE',        # Light blue
             
             # RAG colors (Red/Amber/Green)
-            'rag_green': '10B981',          # Excellent (â‰¥80%)
+            'rag_green': '10B981',          # Excellent (≥80%)
             'rag_light_green': '34D399',    # Good (60-79%)
             'rag_amber': 'F59E0B',          # Needs work (40-59%)
             'rag_red': 'EF4444',            # Critical (<40%)
@@ -12727,9 +12751,9 @@ class FeelGoodDrivingReportGenerator:
             # Store for chart
             chart_data[week_label] = {
                 'Bonne': good,
-                'ModÃ©rÃ©e': moderate,
+                'Modérée': moderate,
                 'Tardive': late,
-                'Pas de DÃ©cÃ©l.': no_decel
+                'Pas de Décél.': no_decel
             }
             
             # Write row
@@ -12778,9 +12802,9 @@ class FeelGoodDrivingReportGenerator:
             # Define color mapping
             colors_dict = {
                 'Bonne': self.colors['rag_green'],
-                'ModÃ©rÃ©e': self.colors['rag_amber'],
+                'Modérée': self.colors['rag_amber'],
                 'Tardive': self.colors['rag_red'],
-                'Pas de DÃ©cÃ©l.': self.colors['rag_dark_red']
+                'Pas de Décél.': self.colors['rag_dark_red']
             }
             
             # Create single aggregated pie chart
@@ -12948,7 +12972,7 @@ class FeelGoodDrivingReportGenerator:
             
             # Store for chart
             chart_data[week_label] = {
-                'ArrÃªt': stopped,
+                'Arrêt': stopped,
                 'Ralenti': slowed,
                 'Passage': passed
             }
@@ -12992,7 +13016,7 @@ class FeelGoodDrivingReportGenerator:
             
             # Define color mapping
             colors_dict = {
-                'ArrÃªt': self.colors['rag_green'],
+                'Arrêt': self.colors['rag_green'],
                 'Ralenti': self.colors['rag_amber'],
                 'Passage': self.colors['rag_light_green']
             }
@@ -13062,7 +13086,7 @@ class FeelGoodDrivingReportGenerator:
             # Store for chart
             chart_data[week_label] = {
                 'Freinages': braking,
-                'AccÃ©lÃ©rations': accel,
+                'Accélérations': accel,
                 'Virages': turns
             }
             
@@ -13119,7 +13143,7 @@ class FeelGoodDrivingReportGenerator:
             # Define color mapping
             colors_dict = {
                 'Freinages': self.colors['rag_red'],
-                'AccÃ©lÃ©rations': self.colors['rag_amber'],
+                'Accélérations': self.colors['rag_amber'],
                 'Virages': self.colors['brand_secondary']
             }
             
@@ -13226,7 +13250,7 @@ class FeelGoodDrivingReportGenerator:
             
             # Priority
             priority = rec['priority']
-            if 'Ã‰levÃ©e' in priority:
+            if 'Élevée' in priority:
                 priority_color = self.colors['rag_red']
             elif 'Moyenne' in priority:
                 priority_color = self.colors['rag_amber']
@@ -13318,7 +13342,7 @@ class FeelGoodDrivingReportGenerator:
             
             # Save workbook
             self.wb.save(output_filename)
-            print(f"âœ… Report saved: {output_filename}")
+            print(f"✅ Report saved: {output_filename}")
             return output_filename
             
         except PermissionError:
@@ -13326,11 +13350,11 @@ class FeelGoodDrivingReportGenerator:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             alt_filename = output_filename.replace('.xlsx', f'_{timestamp}.xlsx')
             self.wb.save(alt_filename)
-            print(f"âœ… Report saved (alternative): {alt_filename}")
+            print(f"✅ Report saved (alternative): {alt_filename}")
             return alt_filename
             
         except Exception as e:
-            print(f"âŒ Error generating report: {e}")
+            print(f"❌ Error generating report: {e}")
             import traceback
             traceback.print_exc()
             return None
