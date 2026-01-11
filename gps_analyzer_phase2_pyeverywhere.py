@@ -51,7 +51,6 @@ from geopy.distance import geodesic
 
 import traceback
 
-
 """ New Tracker__ Version 5
 
 Integrating Tracker Parameters
